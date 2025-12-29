@@ -1,0 +1,6 @@
+@SRN.API_HostAddress = http://localhost:5213
+
+GET {{SRN.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
