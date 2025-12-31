@@ -1,5 +1,4 @@
 <Solution>
-  <Folder Name="/SmartContracts/" />
   <Project Path="SRN.API/SRN.API.csproj" Id="33477ac8-503b-48a5-9949-0347966c4497" />
   <Project Path="SRN.Application/SRN.Application.csproj" Id="ddfbdabf-f3ca-4ff3-bc8a-b1be7c3a36a5" />
   <Project Path="SRN.Domain/SRN.Domain.csproj" Id="7dfd04ff-126c-499e-9b25-1dcdf90cf8d9" />
