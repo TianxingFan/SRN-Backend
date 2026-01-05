@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: srn_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 587613
+      POSTGRES_DB: SRN_Db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    image: srn-backend
+    container_name: srn_api
+    build:
+      context: .
+      dockerfile: SRN.API/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=SRN_Db;Username=postgres;Password=587613
+      
+      - BlockchainSettings__RpcUrl=${RPC_URL}
+      - BlockchainSettings__PrivateKey=${PRIVATE_KEY}
+      - BlockchainSettings__ContractAddress=${CONTRACT_ADDRESS}
+volumes:
+  postgres_data:
