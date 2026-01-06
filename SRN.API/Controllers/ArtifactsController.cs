@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SRN.Domain.Entities;
 using SRN.Infrastructure.Persistence;
 using SRN.Infrastructure.Blockchain;
 using System.Security.Cryptography;
 using SRN.API.DTOs;
+using System.Security.Claims;
 
 namespace SRN.API.Controllers
 {
@@ -21,6 +23,7 @@ namespace SRN.API.Controllers
         }
 
         // POST: api/Artifacts/upload
+        [Authorize]
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] ArtifactUploadDto uploadDto)
         {
@@ -59,6 +62,10 @@ namespace SRN.API.Controllers
                 await uploadDto.File.CopyToAsync(stream);
             }
 
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            Guid ownerId = Guid.TryParse(userIdString, out var parsedId) ? parsedId : Guid.NewGuid();
+
             // 5. Database: Create the initial record in PostgreSQL
             var artifact = new Artifact
             {
@@ -68,7 +75,7 @@ namespace SRN.API.Controllers
                 FilePath = filePath,
                 UploadDate = DateTime.UtcNow,
                 Status = "Pending Blockchain",
-                OwnerId = Guid.NewGuid() // Placeholder: Replace with actual User ID in production
+                OwnerId = ownerId
             };
 
             _context.Artifacts.Add(artifact);
@@ -96,7 +103,8 @@ namespace SRN.API.Controllers
                 message = "Upload & Anchoring Successful",
                 artifactId = artifact.ArtifactId,
                 hash = fileHash,
-                blockchainTx = txHash
+                blockchainTx = txHash,
+                ownerId = ownerId
             });
         }
 
