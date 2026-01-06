@@ -11,7 +11,7 @@ using SRN.Infrastructure.Persistence;
 
 namespace SRN.Infrastructure.Migrations
 {
-    [DbContext(typeof(SrnDbContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20251225081211_InitialCreate")]
     partial class InitialCreate
     {

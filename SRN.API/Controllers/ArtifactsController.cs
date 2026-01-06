@@ -11,10 +11,10 @@ namespace SRN.API.Controllers
     [ApiController]
     public class ArtifactsController : ControllerBase
     {
-        private readonly SrnDbContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly BlockchainService _blockchainService;
 
-        public ArtifactsController(SrnDbContext context, BlockchainService blockchainService)
+        public ArtifactsController(ApplicationDbContext context, BlockchainService blockchainService)
         {
             _context = context;
             _blockchainService = blockchainService;
