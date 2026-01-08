@@ -9,11 +9,23 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-builder.Services.AddScoped<BlockchainService>();
+var blockchainProvider = builder.Configuration["Blockchain:Provider"];
+
+if (blockchainProvider == "Real")
+{
+
+    builder.Services.AddScoped<IBlockchainService, EthereumBlockchainService>();
+    Console.WriteLine("--> Using REAL Ethereum Blockchain Service");
+}
+else
+{
+
+    builder.Services.AddScoped<IBlockchainService, MockBlockchainService>();
+    Console.WriteLine("--> Using MOCK Blockchain Service (No Gas cost)");
+}
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
