@@ -14,7 +14,6 @@ namespace SRN.API.Controllers
     public class ArtifactsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-
         private readonly IBlockchainService _blockchainService;
 
         public ArtifactsController(ApplicationDbContext context, IBlockchainService blockchainService)
@@ -74,18 +73,10 @@ namespace SRN.API.Controllers
             _context.Artifacts.Add(artifact);
             await _context.SaveChangesAsync();
 
-            string txHash = "";
-            try
-            {
-                txHash = await _blockchainService.RegisterArtifactAsync(fileHash);
+            string txHash = await _blockchainService.RegisterArtifactAsync(fileHash);
 
-                artifact.Status = "Verified On-Chain";
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Database saved, but Blockchain failed", error = ex.Message });
-            }
+            artifact.Status = "Verified On-Chain";
+            await _context.SaveChangesAsync();
 
             return Ok(new
             {
@@ -102,38 +93,31 @@ namespace SRN.API.Controllers
         {
             if (string.IsNullOrEmpty(fileHash)) return BadRequest("Hash is required.");
 
-            try
+            var result = await _blockchainService.VerifyArtifactAsync(fileHash);
+
+            if (result.Registered)
             {
-                var result = await _blockchainService.VerifyArtifactAsync(fileHash);
+                var verifyTime = DateTimeOffset.FromUnixTimeSeconds(result.Timestamp).DateTime.ToLocalTime();
 
-                if (result.Registered)
+                return Ok(new
                 {
-                    var verifyTime = DateTimeOffset.FromUnixTimeSeconds(result.Timestamp).DateTime.ToLocalTime();
-
-                    return Ok(new
+                    status = "Verified ✅",
+                    message = "The document is authentically anchored on the Blockchain.",
+                    details = new
                     {
-                        status = "Verified ✅",
-                        message = "The document is authentically anchored on the Blockchain.",
-                        details = new
-                        {
-                            ownerAddress = result.Owner,
-                            registeredAt = verifyTime,
-                            hash = fileHash
-                        }
-                    });
-                }
-                else
-                {
-                    return NotFound(new
-                    {
-                        status = "Unverified ❌",
-                        message = "This hash does not exist on the Smart Contract."
-                    });
-                }
+                        ownerAddress = result.Owner,
+                        registeredAt = verifyTime,
+                        hash = fileHash
+                    }
+                });
             }
-            catch (Exception ex)
+            else
             {
-                return StatusCode(500, new { error = ex.Message });
+                return NotFound(new
+                {
+                    status = "Unverified ❌",
+                    message = "This hash does not exist on the Smart Contract."
+                });
             }
         }
 
