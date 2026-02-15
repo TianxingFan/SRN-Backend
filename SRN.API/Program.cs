@@ -5,24 +5,22 @@ using SRN.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using SRN.API.Middleware;
+using SRN.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
-
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 var blockchainProvider = builder.Configuration["Blockchain:Provider"];
-
 if (blockchainProvider == "Real")
 {
-
     builder.Services.AddScoped<IBlockchainService, EthereumBlockchainService>();
     Console.WriteLine("--> Using REAL Ethereum Blockchain Service");
 }
 else
 {
-
     builder.Services.AddScoped<IBlockchainService, MockBlockchainService>();
     Console.WriteLine("--> Using MOCK Blockchain Service (No Gas cost)");
 }
@@ -54,8 +52,19 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => true)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
+builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -67,7 +76,6 @@ builder.Services.AddSwaggerGen(c =>
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-
     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -85,25 +93,14 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
-
 app.UseMiddleware<SRN.API.Middleware.ExceptionMiddleware>();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
-
-    app.UseHttpsRedirection();
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.MapControllers();
-
-    app.Run();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseCors("AllowAll");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
+app.Run();

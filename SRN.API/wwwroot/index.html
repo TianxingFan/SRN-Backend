@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR 实时通知 Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>  <!-- SignalR JS -->
+</head>
+<body>
+    <h1>区块链上传 Demo</h1>
+    <input type="file" id="fileInput" />  <!-- 文件选择 -->
+    <input type="text" id="titleInput" placeholder="标题" />  <!-- 标题输入 -->
+    <button onclick="upload()">上传到区块链</button>
+    <div id="messages"></div>  <!-- 显示推送消息 -->
+
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")  // 你的 Hub URL
+            .build();
+
+        // 监听服务器推送（后端发三个参数：user, message, artifactId）
+        connection.on("ReceiveMessage", (user, message, artifactId) => {
+            const msg = document.createElement("p");
+            msg.textContent = `${user}: ${message} (Artifact ID: ${artifactId})`;  // 显示消息
+            document.getElementById("messages").appendChild(msg);
+            console.log("收到推送:", message, artifactId);
+            // 可选过滤：if (artifactId === '你的当前ID') { alert(message); }  // 用 artifactId 过滤只显示自己的
+        });
+
+        connection.start().catch(err => console.error("SignalR 连接失败:", err));
+
+        async function upload() {
+            const file = document.getElementById("fileInput").files[0];
+            const title = document.getElementById("titleInput").value;
+            if (!file || !title) { alert("请选择文件和标题"); return; }
+
+            const formData = new FormData();
+            formData.append("File", file);
+            formData.append("Title", title);
+
+            const response = await fetch('/api/artifacts/upload', {  // 你的 API URL
+                method: 'POST',
+                //headers: { 'Authorization': 'Bearer 你的JWT Token' },  // 如果需要认证，加 JWT
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(`已提交！Artifact ID: ${data.artifactId} 等待推送...`);
+                // 可存 data.artifactId 到变量，用于前端过滤推送
+            } else {
+                alert("上传失败");
+            }
+        }
+    </script>
+</body>
+</html>
