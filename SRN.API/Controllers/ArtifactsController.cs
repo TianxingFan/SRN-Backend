@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SRN.Infrastructure.Persistence;
-using SRN.Infrastructure.Blockchain;
-using System.Security.Cryptography;
-using SRN.API.DTOs;
-using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
-using SRN.API.Hubs;
 using Microsoft.EntityFrameworkCore;
+using SRN.API.DTOs;
+using SRN.API.Hubs;
+using SRN.Domain.Entities;
+using SRN.Infrastructure.Blockchain;
+using SRN.Infrastructure.Persistence;
+using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace SRN.API.Controllers
 {
@@ -18,13 +19,13 @@ namespace SRN.API.Controllers
         private readonly ApplicationDbContext _context; // 仅供同步代码使用
         private readonly IBlockchainService _blockchainService;
         private readonly IHubContext<NotificationHub> _hubContext;
-        private readonly IServiceScopeFactory _scopeFactory; // 1. 新增这个工厂
+        private readonly IServiceScopeFactory _scopeFactory; // 1. 工厂用于后台任务
 
         public ArtifactsController(
             ApplicationDbContext context,
             IBlockchainService blockchainService,
             IHubContext<NotificationHub> hubContext,
-            IServiceScopeFactory scopeFactory) // 2. 注入它
+            IServiceScopeFactory scopeFactory)
         {
             _context = context;
             _blockchainService = blockchainService;
@@ -32,7 +33,7 @@ namespace SRN.API.Controllers
             _scopeFactory = scopeFactory;
         }
 
-        [Authorize]  // 恢复 [Authorize]，生产用
+        [Authorize] // 🔒 生产模式：开启认证
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] ArtifactUploadDto uploadDto)
         {
@@ -50,7 +51,7 @@ namespace SRN.API.Controllers
                 }
             }
 
-            // --- 2. 查重 (这里用 _context 没问题，因为还没返回) ---
+            // --- 2. 查重 ---
             var existingArtifact = _context.Artifacts.FirstOrDefault(a => a.FileHash == fileHash);
             if (existingArtifact != null)
             {
@@ -67,7 +68,7 @@ namespace SRN.API.Controllers
             }
 
             // --- 4. 存数据库 (初始状态) ---
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);  // 从 JWT 取 OwnerId
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // 从 JWT 获取用户ID
             if (!Guid.TryParse(userIdString, out Guid ownerId))
             {
                 return BadRequest("Invalid user ID from token.");
@@ -82,47 +83,47 @@ namespace SRN.API.Controllers
                 UploadDate = DateTime.UtcNow,
                 Status = "Pending Blockchain",
                 OwnerId = ownerId
-                // TxHash 暂时不赋值，等上链成功再更新
+                // TxHash 等待上链后更新
             };
 
             _context.Artifacts.Add(artifact);
             await _context.SaveChangesAsync();
 
-            // 保存这些变量，供后台任务使用
-            var currentArtifactId = artifact.ArtifactId.ToString();  // 转为 string 以匹配推送
+            // 保存变量供后台线程使用
+            var currentArtifactId = artifact.ArtifactId.ToString();
             var currentFileHash = fileHash;
             var currentTitle = uploadDto.Title;
-            var currentUserId = ownerId.ToString();  // 新增：用户 ID 用于针对推送
+            var currentUserId = ownerId.ToString(); // 用于推送
 
-            // --- 5. 启动后台任务 (核心修改点) ---
+            // --- 5. 启动后台任务 (使用 ScopeFactory 防止 Context 销毁) ---
             _ = Task.Run(async () =>
             {
-                // 3. 手动创建一个新的 Scope
                 using (var scope = _scopeFactory.CreateScope())
                 {
-                    // 4. 从新 Scope 里拿一个新的 DbContext
+                    // 获取新的 DbContext 实例
                     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                     try
                     {
-                        // 执行耗时的区块链操作
+                        // 执行耗时上链操作
                         string txHash = await _blockchainService.RegisterArtifactAsync(currentFileHash);
 
-                        // 使用新的 dbContext 更新数据库
+                        // 更新数据库状态
                         var artifactToUpdate = await dbContext.Artifacts.FindAsync(Guid.Parse(currentArtifactId));
                         if (artifactToUpdate != null)
                         {
                             artifactToUpdate.Status = "Registered";
-                            artifactToUpdate.TxHash = txHash; // 确保数据库已有此字段，否则注释掉
+                            artifactToUpdate.TxHash = txHash;
                             await dbContext.SaveChangesAsync();
                         }
 
-                        // 推送成功消息（针对用户：用 Clients.User(currentUserId)）
-                        await _hubContext.Clients.User(currentUserId).SendAsync("ReceiveMessage", "System",
+                        // ✅ 关键修改：使用 Clients.Group 配合 Hub 中的 Groups.AddToGroupAsync
+                        await _hubContext.Clients.Group(currentUserId).SendAsync("ReceiveMessage", "System",
                             $"✅ 上链成功！文件 '{currentTitle}' 已被锚定。TxHash: {txHash}", currentArtifactId);
                     }
                     catch (Exception ex)
                     {
-                        // 失败处理：也要用新的 dbContext
+                        // 失败处理
                         var artifactToUpdate = await dbContext.Artifacts.FindAsync(Guid.Parse(currentArtifactId));
                         if (artifactToUpdate != null)
                         {
@@ -130,11 +131,11 @@ namespace SRN.API.Controllers
                             await dbContext.SaveChangesAsync();
                         }
 
-                        // 推送失败消息（针对用户）
-                        await _hubContext.Clients.User(currentUserId).SendAsync("ReceiveMessage", "System",
+                        // 推送失败消息
+                        await _hubContext.Clients.Group(currentUserId).SendAsync("ReceiveMessage", "System",
                             $"❌ 上链失败：{ex.Message}", currentArtifactId);
                     }
-                } // 5. Scope 结束，dbContext 自动释放
+                }
             });
 
             return Accepted(new
@@ -177,21 +178,18 @@ namespace SRN.API.Controllers
             }
         }
 
-        [Authorize]  // 加认证，确保只能下载自己的
+        [Authorize]
         [HttpGet("download/{id}")]
         public async Task<IActionResult> Download(Guid id)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userIdString, out Guid ownerId))
-            {
-                return BadRequest("Invalid user ID from token.");
-            }
+            if (!Guid.TryParse(userIdString, out Guid ownerId)) return BadRequest("Invalid user ID.");
 
+            // 安全检查：只能下载属于自己的文件
             var artifact = await _context.Artifacts.FirstOrDefaultAsync(a => a.ArtifactId == id && a.OwnerId == ownerId);
-            if (artifact == null) return NotFound("File record not found or not owned by you.");
 
-            if (!System.IO.File.Exists(artifact.FilePath))
-                return NotFound("Physical file is missing on server.");
+            if (artifact == null) return NotFound("File record not found or access denied.");
+            if (!System.IO.File.Exists(artifact.FilePath)) return NotFound("Physical file is missing.");
 
             var memory = new MemoryStream();
             using (var stream = new FileStream(artifact.FilePath, FileMode.Open))
@@ -202,17 +200,14 @@ namespace SRN.API.Controllers
             return File(memory, "application/octet-stream", Path.GetFileName(artifact.FilePath));
         }
 
-        // 新增：获取用户上传历史 API（前端 History 用这个替换 localStorage）
-        [Authorize]
+        [Authorize] // 🔒 必须登录才能看历史
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory()
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userIdString, out Guid ownerId))
-            {
-                return BadRequest("Invalid user ID from token.");
-            }
+            if (!Guid.TryParse(userIdString, out Guid ownerId)) return BadRequest("Invalid user ID.");
 
+            // 只查询当前登录用户的记录
             var artifacts = await _context.Artifacts
                 .Where(a => a.OwnerId == ownerId)
                 .Select(a => new
