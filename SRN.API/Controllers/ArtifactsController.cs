@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SRN.Infrastructure.Persistence;
 using SRN.Infrastructure.Blockchain;
 using System.Security.Cryptography;
 using SRN.API.DTOs;
+using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
 using SRN.API.Hubs;
-using Microsoft.Extensions.DependencyInjection; // 必须引用这个！
+using Microsoft.EntityFrameworkCore;
 
 namespace SRN.API.Controllers
 {
@@ -30,7 +32,7 @@ namespace SRN.API.Controllers
             _scopeFactory = scopeFactory;
         }
 
-        // [Authorize] // 测试时暂时注释
+        [Authorize]  // 恢复 [Authorize]，生产用
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] ArtifactUploadDto uploadDto)
         {
@@ -58,7 +60,6 @@ namespace SRN.API.Controllers
             // --- 3. 存文件 ---
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
             var filePath = Path.Combine(uploadsFolder, $"{Guid.NewGuid()}_{uploadDto.File.FileName}");
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
@@ -66,8 +67,11 @@ namespace SRN.API.Controllers
             }
 
             // --- 4. 存数据库 (初始状态) ---
-            // ⚠️ 确保这个 ID 在你的数据库 AspNetUsers 表里存在，否则报错
-            Guid ownerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);  // 从 JWT 取 OwnerId
+            if (!Guid.TryParse(userIdString, out Guid ownerId))
+            {
+                return BadRequest("Invalid user ID from token.");
+            }
 
             var artifact = new Artifact
             {
@@ -84,10 +88,11 @@ namespace SRN.API.Controllers
             _context.Artifacts.Add(artifact);
             await _context.SaveChangesAsync();
 
-            // 保存这就变量，供后台任务使用
-            var currentArtifactId = artifact.ArtifactId;
+            // 保存这些变量，供后台任务使用
+            var currentArtifactId = artifact.ArtifactId.ToString();  // 转为 string 以匹配推送
             var currentFileHash = fileHash;
             var currentTitle = uploadDto.Title;
+            var currentUserId = ownerId.ToString();  // 新增：用户 ID 用于针对推送
 
             // --- 5. 启动后台任务 (核心修改点) ---
             _ = Task.Run(async () =>
@@ -97,14 +102,13 @@ namespace SRN.API.Controllers
                 {
                     // 4. 从新 Scope 里拿一个新的 DbContext
                     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
                     try
                     {
                         // 执行耗时的区块链操作
                         string txHash = await _blockchainService.RegisterArtifactAsync(currentFileHash);
 
                         // 使用新的 dbContext 更新数据库
-                        var artifactToUpdate = await dbContext.Artifacts.FindAsync(currentArtifactId);
+                        var artifactToUpdate = await dbContext.Artifacts.FindAsync(Guid.Parse(currentArtifactId));
                         if (artifactToUpdate != null)
                         {
                             artifactToUpdate.Status = "Registered";
@@ -112,23 +116,23 @@ namespace SRN.API.Controllers
                             await dbContext.SaveChangesAsync();
                         }
 
-                        // 推送成功消息
-                        await _hubContext.Clients.All.SendAsync("ReceiveMessage", "System",
-                            $"✅ 上链成功！文件 '{currentTitle}' 已被锚定。TxHash: {txHash}", currentArtifactId.ToString());
+                        // 推送成功消息（针对用户：用 Clients.User(currentUserId)）
+                        await _hubContext.Clients.User(currentUserId).SendAsync("ReceiveMessage", "System",
+                            $"✅ 上链成功！文件 '{currentTitle}' 已被锚定。TxHash: {txHash}", currentArtifactId);
                     }
                     catch (Exception ex)
                     {
                         // 失败处理：也要用新的 dbContext
-                        var artifactToUpdate = await dbContext.Artifacts.FindAsync(currentArtifactId);
+                        var artifactToUpdate = await dbContext.Artifacts.FindAsync(Guid.Parse(currentArtifactId));
                         if (artifactToUpdate != null)
                         {
                             artifactToUpdate.Status = "Failed";
                             await dbContext.SaveChangesAsync();
                         }
 
-                        // 推送失败消息
-                        await _hubContext.Clients.All.SendAsync("ReceiveMessage", "System",
-                            $"❌ 上链失败：{ex.Message}", currentArtifactId.ToString());
+                        // 推送失败消息（针对用户）
+                        await _hubContext.Clients.User(currentUserId).SendAsync("ReceiveMessage", "System",
+                            $"❌ 上链失败：{ex.Message}", currentArtifactId);
                     }
                 } // 5. Scope 结束，dbContext 自动释放
             });
@@ -173,11 +177,18 @@ namespace SRN.API.Controllers
             }
         }
 
+        [Authorize]  // 加认证，确保只能下载自己的
         [HttpGet("download/{id}")]
         public async Task<IActionResult> Download(Guid id)
         {
-            var artifact = await _context.Artifacts.FindAsync(id);
-            if (artifact == null) return NotFound("File record not found.");
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdString, out Guid ownerId))
+            {
+                return BadRequest("Invalid user ID from token.");
+            }
+
+            var artifact = await _context.Artifacts.FirstOrDefaultAsync(a => a.ArtifactId == id && a.OwnerId == ownerId);
+            if (artifact == null) return NotFound("File record not found or not owned by you.");
 
             if (!System.IO.File.Exists(artifact.FilePath))
                 return NotFound("Physical file is missing on server.");
@@ -189,6 +200,34 @@ namespace SRN.API.Controllers
             }
             memory.Position = 0;
             return File(memory, "application/octet-stream", Path.GetFileName(artifact.FilePath));
+        }
+
+        // 新增：获取用户上传历史 API（前端 History 用这个替换 localStorage）
+        [Authorize]
+        [HttpGet("history")]
+        public async Task<IActionResult> GetHistory()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdString, out Guid ownerId))
+            {
+                return BadRequest("Invalid user ID from token.");
+            }
+
+            var artifacts = await _context.Artifacts
+                .Where(a => a.OwnerId == ownerId)
+                .Select(a => new
+                {
+                    a.ArtifactId,
+                    a.Title,
+                    a.Status,
+                    a.UploadDate,
+                    a.FileHash,
+                    a.TxHash
+                })
+                .OrderByDescending(a => a.UploadDate)
+                .ToListAsync();
+
+            return Ok(artifacts);
         }
     }
 }

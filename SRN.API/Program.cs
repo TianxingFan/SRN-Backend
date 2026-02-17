@@ -97,6 +97,7 @@ app.UseMiddleware<SRN.API.Middleware.ExceptionMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseCors("AllowAll");
 app.UseAuthentication();

@@ -1,55 +1,432 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SignalR 实时通知 Demo</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>  <!-- SignalR JS -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRN Blockchain Artifact Manager</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- SignalR JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <style>
+        body {
+            padding-top: 56px;
+        }
+        /* Navbar space */
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+            .upload-area.dragover {
+                border-color: #0d6efd;
+                background-color: #f0f8ff;
+            }
+    </style>
 </head>
 <body>
-    <h1>区块链上传 Demo</h1>
-    <input type="file" id="fileInput" />  <!-- 文件选择 -->
-    <input type="text" id="titleInput" placeholder="标题" />  <!-- 标题输入 -->
-    <button onclick="upload()">上传到区块链</button>
-    <div id="messages"></div>  <!-- 显示推送消息 -->
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">SRN Artifact</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#upload">Upload</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#verify">Verify</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><button class="btn btn-outline-primary" onclick="showLoginModal()">Login</button></li>
+                    <li class="nav-item"><button class="btn btn-outline-secondary ms-2" onclick="showRegisterModal()">Register</button></li>
+                    <li class="nav-item" id="logoutBtn" style="display: none;"><button class="btn btn-outline-danger ms-2" onclick="logout()">Logout</button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
+    <!-- 主内容容器 -->
+    <div class="container mt-4">
+        <!-- Home 页面 -->
+        <section id="home" class="mb-5">
+            <h1>Welcome to SRN Blockchain Artifact Manager</h1>
+            <p>Securely upload and verify artifacts on the blockchain. Real-time notifications powered by SignalR.</p>
+            <button class="btn btn-primary" onclick="navigateTo('#upload')">Start Uploading</button>
+        </section>
+
+        <!-- Upload 页面 -->
+        <section id="upload" class="mb-5" style="display: none;">
+            <h2>Upload Artifact</h2>
+            <div class="mb-3">
+                <label for="titleInput" class="form-label">Title</label>
+                <input type="text" id="titleInput" class="form-control" placeholder="Artifact Title">
+            </div>
+            <div class="upload-area mb-3" id="uploadArea">
+                <p id="uploadText">Drag & drop file here or click to select</p>
+                <input type="file" id="fileInput" style="display: none;">
+            </div>
+            <button class="btn btn-primary" onclick="uploadFile()">Upload to Blockchain</button>
+            <div id="uploadStatus" class="mt-3"></div>
+
+            <!-- 上传历史列表 -->
+            <h3 class="mt-4">Upload History</h3>
+            <ul id="historyList" class="list-group"></ul>
+        </section>
+
+        <!-- Verify 页面 -->
+        <section id="verify" class="mb-5" style="display: none;">
+            <h2>Verify Artifact</h2>
+            <div class="mb-3">
+                <label for="hashInput" class="form-label">File Hash</label>
+                <input type="text" id="hashInput" class="form-control" placeholder="Enter hash to verify">
+            </div>
+            <button class="btn btn-primary" onclick="verifyHash()">Verify</button>
+            <div id="verifyResult" class="mt-3"></div>
+        </section>
+
+        <!-- About 页面 -->
+        <section id="about" class="mb-5" style="display: none;">
+            <h2>About This Project</h2>
+            <p>This is a blockchain-based artifact management system for secure file anchoring and verification.</p>
+            <ul>
+                <li><strong>Blockchain Integration</strong>: Uses Ethereum (Sepolia) for immutable storage. <span data-bs-toggle="tooltip" title="Blockchain ensures tamper-proof records, preventing alterations after upload.">ℹ️</span></li>
+                <li><strong>SignalR Real-time Notifications</strong>: Provides instant updates on upload status. <span data-bs-toggle="tooltip" title="WebSocket-based for asynchronous, non-blocking interactions—users don't wait for blockchain confirmation.">ℹ️</span></li>
+                <li><strong>File Hashing</strong>: SHA-256 for unique identifiers. <span data-bs-toggle="tooltip" title="Ensures file integrity and duplicates detection.">ℹ️</span></li>
+                <li><strong>Deployment</strong>: Backend in ASP.NET Core, frontend in Bootstrap for simplicity. <span data-bs-toggle="tooltip" title="Chosen for rapid development and cross-device compatibility.">ℹ️</span></li>
+            </ul>
+        </section>
+    </div>
+
+    <!-- Toast 容器（用于推送通知） -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label">Email</label>
+                        <input type="email" id="loginEmail" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="loginPassword" class="form-label">Password</label>
+                        <input type="password" id="loginPassword" class="form-control">
+                    </div>
+                    <div id="loginStatus" class="alert alert-danger" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="loginUser()">Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">Register</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="registerEmail" class="form-label">Email</label>
+                        <input type="email" id="registerEmail" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerPassword" class="form-label">Password</label>
+                        <input type="password" id="registerPassword" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerWallet" class="form-label">Wallet Address</label>
+                        <input type="text" id="registerWallet" class="form-control">
+                    </div>
+                    <div id="registerStatus" class="alert alert-danger" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="registerUser()">Register</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/notificationHub")  // 你的 Hub URL
-            .build();
+        const baseUrl = '';  // 改成你的后端 URL（生产时改域名）
+        let currentArtifactId = null;  // 存当前上传 ID 用于过滤推送（虽然后端已针对，但备用）
 
-        // 监听服务器推送（后端发三个参数：user, message, artifactId）
-        connection.on("ReceiveMessage", (user, message, artifactId) => {
-            const msg = document.createElement("p");
-            msg.textContent = `${user}: ${message} (Artifact ID: ${artifactId})`;  // 显示消息
-            document.getElementById("messages").appendChild(msg);
-            console.log("收到推送:", message, artifactId);
-            // 可选过滤：if (artifactId === '你的当前ID') { alert(message); }  // 用 artifactId 过滤只显示自己的
-        });
+        // 导航切换（模拟 SPA）
+        function navigateTo(section) {
+            document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+            document.querySelector(section).style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            const activeLink = document.querySelector(`a[href="${section}"]`);
+            if (activeLink) activeLink.classList.add('active');
+        }
 
-        connection.start().catch(err => console.error("SignalR 连接失败:", err));
+        // SignalR 连接（带 userId）
+        function connectSignalR() {
+            const userId = localStorage.getItem('userId');
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl(`${baseUrl}/notificationHub?user=${userId}`)  // 带 userId 支持 Clients.User
+                .build();
 
-        async function upload() {
-            const file = document.getElementById("fileInput").files[0];
-            const title = document.getElementById("titleInput").value;
-            if (!file || !title) { alert("请选择文件和标题"); return; }
-
-            const formData = new FormData();
-            formData.append("File", file);
-            formData.append("Title", title);
-
-            const response = await fetch('/api/artifacts/upload', {  // 你的 API URL
-                method: 'POST',
-                //headers: { 'Authorization': 'Bearer 你的JWT Token' },  // 如果需要认证，加 JWT
-                body: formData
+            connection.on("ReceiveMessage", (user, message, artifactId) => {
+                showToast(message);
+                renderHistory();  // 刷新历史
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                alert(`已提交！Artifact ID: ${data.artifactId} 等待推送...`);
-                // 可存 data.artifactId 到变量，用于前端过滤推送
-            } else {
-                alert("上传失败");
+            connection.start().catch(err => console.error('SignalR Error:', err));
+            return connection;
+        }
+        let connection = null;  // 全局 connection
+
+        // 上传文件
+        async function uploadFile() {
+            const token = localStorage.getItem('token');
+            if (!token) return alert('Please login first.');
+
+            const title = document.getElementById('titleInput').value;
+            const file = document.getElementById('fileInput').files[0];
+            if (!title || !file) return alert('Missing fields');
+
+            const formData = new FormData();
+            formData.append('File', file);
+            formData.append('Title', title);
+
+            document.getElementById('uploadStatus').innerHTML = '<div class="alert alert-info">Uploading...</div>';
+
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/upload`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                if (!res.ok) throw new Error('Upload failed');
+                const data = await res.json();
+                currentArtifactId = data.artifactId;
+                document.getElementById('uploadStatus').innerHTML = '<div class="alert alert-success">Submitted! Waiting for blockchain...</div>';
+                renderHistory();  // 刷新历史
+            } catch (err) {
+                document.getElementById('uploadStatus').innerHTML = '<div class="alert alert-danger">Upload failed: ' + err.message + '</div>';
             }
         }
+
+        // 验证哈希
+        async function verifyHash() {
+            const hash = document.getElementById('hashInput').value;
+            if (!hash) return alert('Enter hash');
+
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/verify/${hash}`);
+                if (!res.ok) throw new Error('Verify failed');
+                const data = await res.json();
+                document.getElementById('verifyResult').innerHTML = `<div class="alert alert-${data.status.includes('Verified') ? 'success' : 'danger'}">${data.message}</div>`;
+            } catch (err) {
+                document.getElementById('verifyResult').innerHTML = '<div class="alert alert-danger">Verification failed: ' + err.message + '</div>';
+            }
+        }
+
+        // Toast 显示
+        function showToast(message) {
+            const toast = document.getElementById('liveToast');
+            toast.querySelector('.toast-body').textContent = message;
+            new bootstrap.Toast(toast).show();
+        }
+
+        // 拖拽上传和点击选择
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadText = document.getElementById('uploadText');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                uploadText.textContent = `Selected: ${fileInput.files[0].name}`;
+            }
+        });
+
+        uploadArea.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            fileInput.files = e.dataTransfer.files;
+            if (fileInput.files.length > 0) {
+                uploadText.textContent = `Dropped: ${fileInput.files[0].name}`;
+            }
+        });
+
+        // 渲染历史（用 API）
+        async function renderHistory() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/history`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Failed to fetch history');
+                const history = await res.json();
+                history.forEach(h => {
+                    const item = document.createElement('li');
+                    item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    item.innerHTML = `${h.title} - Status: ${h.status} (ID: ${h.artifactId}) <button class="btn btn-sm btn-secondary" onclick="downloadArtifact('${h.artifactId}')">Download</button>`;
+                    list.appendChild(item);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // 下载 artifact
+        async function downloadArtifact(id) {
+            const token = localStorage.getItem('token');
+            if (!token) return alert('Please login first.');
+
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/download/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Download failed');
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'artifact';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Download failed: ' + err.message);
+            }
+        }
+
+        // 显示登录 modal
+        function showLoginModal() {
+            new bootstrap.Modal(document.getElementById('loginModal')).show();
+        }
+
+        // 显示注册 modal
+        function showRegisterModal() {
+            new bootstrap.Modal(document.getElementById('registerModal')).show();
+        }
+
+        // 登录用户
+        async function loginUser() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const status = document.getElementById('loginStatus');
+
+            status.style.display = 'none';
+
+            try {
+                const res = await fetch(`${baseUrl}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                if (!res.ok) throw new Error(await res.text());
+                const data = await res.json();
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userId', data.user.id);  // 存 userId
+                bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+                updateNavAfterLogin();
+                connection = connectSignalR();  // 连接 SignalR 带 userId
+                renderHistory();  // 刷新历史
+            } catch (err) {
+                status.textContent = err.message;
+                status.style.display = 'block';
+            }
+        }
+
+        // 注册用户
+        async function registerUser() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const wallet = document.getElementById('registerWallet').value;
+            const status = document.getElementById('registerStatus');
+
+            status.style.display = 'none';
+
+            try {
+                const res = await fetch(`${baseUrl}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, walletAddress: wallet })
+                });
+                if (!res.ok) throw new Error(await res.text());
+                await res.json();
+                bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+                alert('Registered! Please login.');
+            } catch (err) {
+                status.textContent = err.message;
+                status.style.display = 'block';
+            }
+        }
+
+        // 登出
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            updateNavAfterLogin();
+            if (connection) connection.stop();
+            document.getElementById('historyList').innerHTML = '';
+        }
+
+        // 更新导航（登录后隐藏 login/register，显示 logout）
+        function updateNavAfterLogin() {
+            const isLoggedIn = !!localStorage.getItem('token');
+            document.querySelectorAll('.navbar-nav .btn-outline-primary, .btn-outline-secondary').forEach(btn => btn.style.display = isLoggedIn ? 'none' : 'inline-block');
+            document.getElementById('logoutBtn').style.display = isLoggedIn ? 'inline-block' : 'none';
+        }
+
+        // 初始化
+        window.onload = () => {
+            navigateTo('#home');  // 默认显示 Home
+            updateNavAfterLogin();
+            if (localStorage.getItem('token')) {
+                connection = connectSignalR();
+                renderHistory();
+            }
+            // Tooltips
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
+            // 添加导航点击事件
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    navigateTo(link.getAttribute('href'));
+                });
+            });
+        };
     </script>
 </body>
 </html>
