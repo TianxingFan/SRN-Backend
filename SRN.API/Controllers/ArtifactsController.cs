@@ -16,10 +16,10 @@ namespace SRN.API.Controllers
     [ApiController]
     public class ArtifactsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context; // 仅供同步代码使用
+        private readonly ApplicationDbContext _context;
         private readonly IBlockchainService _blockchainService;
         private readonly IHubContext<NotificationHub> _hubContext;
-        private readonly IServiceScopeFactory _scopeFactory; // 1. 工厂用于后台任务
+        private readonly IServiceScopeFactory _scopeFactory;
 
         public ArtifactsController(
             ApplicationDbContext context,
@@ -33,14 +33,13 @@ namespace SRN.API.Controllers
             _scopeFactory = scopeFactory;
         }
 
-        [Authorize] // 🔒 生产模式：开启认证
+        [Authorize]
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] ArtifactUploadDto uploadDto)
         {
-            if (uploadDto.File == null || uploadDto.File.Length == 0)
-                return BadRequest("No file uploaded.");
+            // FluentValidation handles null checks automatically
 
-            // --- 1. 计算哈希 ---
+            // --- 1. Compute Hash ---
             string fileHash;
             using (var sha256 = SHA256.Create())
             {
@@ -51,14 +50,14 @@ namespace SRN.API.Controllers
                 }
             }
 
-            // --- 2. 查重 ---
+            // --- 2. Deduplication ---
             var existingArtifact = _context.Artifacts.FirstOrDefault(a => a.FileHash == fileHash);
             if (existingArtifact != null)
             {
                 return Conflict(new { message = "Artifact already exists", artifactId = existingArtifact.ArtifactId });
             }
 
-            // --- 3. 存文件 ---
+            // --- 3. Save File ---
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
             var filePath = Path.Combine(uploadsFolder, $"{Guid.NewGuid()}_{uploadDto.File.FileName}");
@@ -67,9 +66,10 @@ namespace SRN.API.Controllers
                 await uploadDto.File.CopyToAsync(stream);
             }
 
-            // --- 4. 存数据库 (初始状态) ---
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier); // 从 JWT 获取用户ID
-            if (!Guid.TryParse(userIdString, out Guid ownerId))
+            // --- 4. Save to Database ---
+            // Fix: Use string for UserId directly
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
             {
                 return BadRequest("Invalid user ID from token.");
             }
@@ -82,33 +82,28 @@ namespace SRN.API.Controllers
                 FilePath = filePath,
                 UploadDate = DateTime.UtcNow,
                 Status = "Pending Blockchain",
-                OwnerId = ownerId
-                // TxHash 等待上链后更新
+                OwnerId = userId // Assign string directly
             };
 
             _context.Artifacts.Add(artifact);
             await _context.SaveChangesAsync();
 
-            // 保存变量供后台线程使用
+            // Prepare variables for background task
             var currentArtifactId = artifact.ArtifactId.ToString();
             var currentFileHash = fileHash;
             var currentTitle = uploadDto.Title;
-            var currentUserId = ownerId.ToString(); // 用于推送
+            var currentUserId = userId; // string
 
-            // --- 5. 启动后台任务 (使用 ScopeFactory 防止 Context 销毁) ---
+            // --- 5. Background Task ---
             _ = Task.Run(async () =>
             {
                 using (var scope = _scopeFactory.CreateScope())
                 {
-                    // 获取新的 DbContext 实例
                     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
                     try
                     {
-                        // 执行耗时上链操作
                         string txHash = await _blockchainService.RegisterArtifactAsync(currentFileHash);
 
-                        // 更新数据库状态
                         var artifactToUpdate = await dbContext.Artifacts.FindAsync(Guid.Parse(currentArtifactId));
                         if (artifactToUpdate != null)
                         {
@@ -117,21 +112,19 @@ namespace SRN.API.Controllers
                             await dbContext.SaveChangesAsync();
                         }
 
-                        // ✅ 关键修改：使用 Clients.Group 配合 Hub 中的 Groups.AddToGroupAsync
+                        // Push Success
                         await _hubContext.Clients.Group(currentUserId).SendAsync("ReceiveMessage", "System",
-                            $"✅ 上链成功！文件 '{currentTitle}' 已被锚定。TxHash: {txHash}", currentArtifactId);
+                            $"✅ 上链成功！TxHash: {txHash}", currentArtifactId);
                     }
                     catch (Exception ex)
                     {
-                        // 失败处理
                         var artifactToUpdate = await dbContext.Artifacts.FindAsync(Guid.Parse(currentArtifactId));
                         if (artifactToUpdate != null)
                         {
                             artifactToUpdate.Status = "Failed";
                             await dbContext.SaveChangesAsync();
                         }
-
-                        // 推送失败消息
+                        // Push Failure
                         await _hubContext.Clients.Group(currentUserId).SendAsync("ReceiveMessage", "System",
                             $"❌ 上链失败：{ex.Message}", currentArtifactId);
                     }
@@ -140,9 +133,8 @@ namespace SRN.API.Controllers
 
             return Accepted(new
             {
-                message = "File accepted. Uploading to Blockchain in background...",
+                message = "File accepted. Processing...",
                 artifactId = artifact.ArtifactId,
-                hash = fileHash,
                 status = "Pending"
             });
         }
@@ -151,74 +143,46 @@ namespace SRN.API.Controllers
         public async Task<IActionResult> Verify(string fileHash)
         {
             if (string.IsNullOrEmpty(fileHash)) return BadRequest("Hash is required.");
-
             var result = await _blockchainService.VerifyArtifactAsync(fileHash);
             if (result.Registered)
             {
                 var verifyTime = DateTimeOffset.FromUnixTimeSeconds(result.Timestamp).DateTime.ToLocalTime();
-                return Ok(new
-                {
-                    status = "Verified ✅",
-                    message = "The document is authentically anchored on the Blockchain.",
-                    details = new
-                    {
-                        ownerAddress = result.Owner,
-                        registeredAt = verifyTime,
-                        hash = fileHash
-                    }
-                });
+                return Ok(new { status = "Verified ✅", details = new { ownerAddress = result.Owner, registeredAt = verifyTime } });
             }
-            else
-            {
-                return NotFound(new
-                {
-                    status = "Unverified ❌",
-                    message = "This hash does not exist on the Smart Contract."
-                });
-            }
+            return NotFound(new { status = "Unverified ❌" });
         }
 
         [Authorize]
         [HttpGet("download/{id}")]
         public async Task<IActionResult> Download(Guid id)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userIdString, out Guid ownerId)) return BadRequest("Invalid user ID.");
+            // Fix: Use string for UserId comparison
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return BadRequest("Invalid user ID.");
 
-            // 安全检查：只能下载属于自己的文件
-            var artifact = await _context.Artifacts.FirstOrDefaultAsync(a => a.ArtifactId == id && a.OwnerId == ownerId);
+            // Compare OwnerId (string) with userId (string)
+            var artifact = await _context.Artifacts.FirstOrDefaultAsync(a => a.ArtifactId == id && a.OwnerId == userId);
 
-            if (artifact == null) return NotFound("File record not found or access denied.");
-            if (!System.IO.File.Exists(artifact.FilePath)) return NotFound("Physical file is missing.");
+            if (artifact == null) return NotFound("Not found or access denied.");
+            if (!System.IO.File.Exists(artifact.FilePath)) return NotFound("File missing.");
 
             var memory = new MemoryStream();
-            using (var stream = new FileStream(artifact.FilePath, FileMode.Open))
-            {
-                await stream.CopyToAsync(memory);
-            }
+            using (var stream = new FileStream(artifact.FilePath, FileMode.Open)) { await stream.CopyToAsync(memory); }
             memory.Position = 0;
             return File(memory, "application/octet-stream", Path.GetFileName(artifact.FilePath));
         }
 
-        [Authorize] // 🔒 必须登录才能看历史
+        [Authorize]
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory()
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userIdString, out Guid ownerId)) return BadRequest("Invalid user ID.");
+            // Fix: Use string for UserId comparison
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return BadRequest("Invalid user ID.");
 
-            // 只查询当前登录用户的记录
             var artifacts = await _context.Artifacts
-                .Where(a => a.OwnerId == ownerId)
-                .Select(a => new
-                {
-                    a.ArtifactId,
-                    a.Title,
-                    a.Status,
-                    a.UploadDate,
-                    a.FileHash,
-                    a.TxHash
-                })
+                .Where(a => a.OwnerId == userId) // Compare string to string
+                .Select(a => new { a.ArtifactId, a.Title, a.Status, a.UploadDate, a.FileHash, a.TxHash })
                 .OrderByDescending(a => a.UploadDate)
                 .ToListAsync();
 

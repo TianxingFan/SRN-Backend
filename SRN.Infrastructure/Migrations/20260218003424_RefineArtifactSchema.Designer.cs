@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SRN.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using SRN.Infrastructure.Persistence;
 namespace SRN.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class SrnDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260218003424_RefineArtifactSchema")]
+    partial class RefineArtifactSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
