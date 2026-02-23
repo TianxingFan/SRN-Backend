@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using SRN.API.DTOs;
 using SRN.API.Hubs;
 using SRN.Domain.Entities;
+using SRN.Domain.Interfaces; // [新增]
 using SRN.Infrastructure.Blockchain;
-using SRN.Infrastructure.Persistence;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
@@ -16,18 +15,18 @@ namespace SRN.API.Controllers
     [ApiController]
     public class ArtifactsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IArtifactRepository _repository; // [修改点] 换成了 Repository
         private readonly IBlockchainService _blockchainService;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly IServiceScopeFactory _scopeFactory;
 
         public ArtifactsController(
-            ApplicationDbContext context,
+            IArtifactRepository repository, // [修改点] 注入 Repository
             IBlockchainService blockchainService,
             IHubContext<NotificationHub> hubContext,
             IServiceScopeFactory scopeFactory)
         {
-            _context = context;
+            _repository = repository;
             _blockchainService = blockchainService;
             _hubContext = hubContext;
             _scopeFactory = scopeFactory;
@@ -37,9 +36,7 @@ namespace SRN.API.Controllers
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] ArtifactUploadDto uploadDto)
         {
-            // FluentValidation handles null checks automatically
-
-            // --- 1. Compute Hash ---
+            // --- 1. 计算哈希 ---
             string fileHash;
             using (var sha256 = SHA256.Create())
             {
@@ -50,14 +47,15 @@ namespace SRN.API.Controllers
                 }
             }
 
-            // --- 2. Deduplication ---
-            var existingArtifact = _context.Artifacts.FirstOrDefault(a => a.FileHash == fileHash);
+            // --- 2. 查重 ---
+            // [修改点] 调用 Repository
+            var existingArtifact = await _repository.GetByHashAsync(fileHash);
             if (existingArtifact != null)
             {
                 return Conflict(new { message = "Artifact already exists", artifactId = existingArtifact.ArtifactId });
             }
 
-            // --- 3. Save File ---
+            // --- 3. 存文件 ---
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
             var filePath = Path.Combine(uploadsFolder, $"{Guid.NewGuid()}_{uploadDto.File.FileName}");
@@ -66,13 +64,9 @@ namespace SRN.API.Controllers
                 await uploadDto.File.CopyToAsync(stream);
             }
 
-            // --- 4. Save to Database ---
-            // Fix: Use string for UserId directly
+            // --- 4. 存数据库 ---
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-            {
-                return BadRequest("Invalid user ID from token.");
-            }
+            if (string.IsNullOrEmpty(userId)) return BadRequest("Invalid user ID from token.");
 
             var artifact = new Artifact
             {
@@ -82,61 +76,55 @@ namespace SRN.API.Controllers
                 FilePath = filePath,
                 UploadDate = DateTime.UtcNow,
                 Status = "Pending Blockchain",
-                OwnerId = userId // Assign string directly
+                OwnerId = userId
             };
 
-            _context.Artifacts.Add(artifact);
-            await _context.SaveChangesAsync();
+            // [修改点] 调用 Repository 添加数据
+            await _repository.AddAsync(artifact);
 
-            // Prepare variables for background task
+            // 准备变量给后台任务
             var currentArtifactId = artifact.ArtifactId.ToString();
             var currentFileHash = fileHash;
             var currentTitle = uploadDto.Title;
-            var currentUserId = userId; // string
+            var currentUserId = userId;
 
-            // --- 5. Background Task ---
+            // --- 5. 启动后台任务 ---
             _ = Task.Run(async () =>
             {
                 using (var scope = _scopeFactory.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    // [修改点] 在后台任务里解析 Repository，而不是 DbContext
+                    var bgRepository = scope.ServiceProvider.GetRequiredService<IArtifactRepository>();
                     try
                     {
                         string txHash = await _blockchainService.RegisterArtifactAsync(currentFileHash);
 
-                        var artifactToUpdate = await dbContext.Artifacts.FindAsync(Guid.Parse(currentArtifactId));
+                        var artifactToUpdate = await bgRepository.GetByIdAsync(Guid.Parse(currentArtifactId));
                         if (artifactToUpdate != null)
                         {
                             artifactToUpdate.Status = "Registered";
                             artifactToUpdate.TxHash = txHash;
-                            await dbContext.SaveChangesAsync();
+                            await bgRepository.UpdateAsync(artifactToUpdate); // [修改点]
                         }
 
-                        // Push Success
                         await _hubContext.Clients.Group(currentUserId).SendAsync("ReceiveMessage", "System",
                             $"✅ 上链成功！TxHash: {txHash}", currentArtifactId);
                     }
                     catch (Exception ex)
                     {
-                        var artifactToUpdate = await dbContext.Artifacts.FindAsync(Guid.Parse(currentArtifactId));
+                        var artifactToUpdate = await bgRepository.GetByIdAsync(Guid.Parse(currentArtifactId));
                         if (artifactToUpdate != null)
                         {
                             artifactToUpdate.Status = "Failed";
-                            await dbContext.SaveChangesAsync();
+                            await bgRepository.UpdateAsync(artifactToUpdate); // [修改点]
                         }
-                        // Push Failure
                         await _hubContext.Clients.Group(currentUserId).SendAsync("ReceiveMessage", "System",
                             $"❌ 上链失败：{ex.Message}", currentArtifactId);
                     }
                 }
             });
 
-            return Accepted(new
-            {
-                message = "File accepted. Processing...",
-                artifactId = artifact.ArtifactId,
-                status = "Pending"
-            });
+            return Accepted(new { message = "File accepted. Processing...", artifactId = artifact.ArtifactId, status = "Pending" });
         }
 
         [HttpGet("verify/{fileHash}")]
@@ -156,12 +144,11 @@ namespace SRN.API.Controllers
         [HttpGet("download/{id}")]
         public async Task<IActionResult> Download(Guid id)
         {
-            // Fix: Use string for UserId comparison
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return BadRequest("Invalid user ID.");
 
-            // Compare OwnerId (string) with userId (string)
-            var artifact = await _context.Artifacts.FirstOrDefaultAsync(a => a.ArtifactId == id && a.OwnerId == userId);
+            // [修改点] 调用 Repository 校验并获取数据
+            var artifact = await _repository.GetByIdAndOwnerAsync(id, userId);
 
             if (artifact == null) return NotFound("Not found or access denied.");
             if (!System.IO.File.Exists(artifact.FilePath)) return NotFound("File missing.");
@@ -176,17 +163,14 @@ namespace SRN.API.Controllers
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory()
         {
-            // Fix: Use string for UserId comparison
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return BadRequest("Invalid user ID.");
 
-            var artifacts = await _context.Artifacts
-                .Where(a => a.OwnerId == userId) // Compare string to string
-                .Select(a => new { a.ArtifactId, a.Title, a.Status, a.UploadDate, a.FileHash, a.TxHash })
-                .OrderByDescending(a => a.UploadDate)
-                .ToListAsync();
+            // [修改点] 调用 Repository
+            var artifacts = await _repository.GetHistoryByOwnerAsync(userId);
 
-            return Ok(artifacts);
+            var result = artifacts.Select(a => new { a.ArtifactId, a.Title, a.Status, a.UploadDate, a.FileHash, a.TxHash });
+            return Ok(result);
         }
     }
 }
