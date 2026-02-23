@@ -6,11 +6,11 @@ namespace SRN.Application.DTOs
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         [Required]
         [MinLength(6)]
-        public string Password { get; set; }
+        public required string Password { get; set; }
 
         public string? WalletAddress { get; set; }
     }

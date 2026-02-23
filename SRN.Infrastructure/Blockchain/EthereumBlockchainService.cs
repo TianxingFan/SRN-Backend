@@ -16,9 +16,10 @@ namespace SRN.Infrastructure.Blockchain
 
         public EthereumBlockchainService(IConfiguration configuration)
         {
-            var privateKey = configuration["Blockchain:PrivateKey"];
-            var rpcUrl = configuration["Blockchain:RpcUrl"];
-            _contractAddress = configuration["Blockchain:ContractAddress"];
+            var privateKey = configuration["Blockchain:PrivateKey"] ?? throw new ArgumentNullException("Blockchain:PrivateKey is missing");
+            var rpcUrl = configuration["Blockchain:RpcUrl"] ?? throw new ArgumentNullException("Blockchain:RpcUrl is missing");
+
+            _contractAddress = configuration["Blockchain:ContractAddress"] ?? throw new ArgumentNullException("Blockchain:ContractAddress is missing");
 
             var account = new Account(privateKey);
             _web3 = new Web3(account, rpcUrl);
@@ -74,7 +75,7 @@ namespace SRN.Infrastructure.Blockchain
             public long Timestamp { get; set; }
 
             [Parameter("address", "owner", 3)]
-            public string Owner { get; set; }
+            public string Owner { get; set; } = string.Empty;
         }
     }
 }

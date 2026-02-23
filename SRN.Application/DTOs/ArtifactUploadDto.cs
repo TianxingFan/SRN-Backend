@@ -4,7 +4,7 @@ namespace SRN.Application.DTOs
 {
     public class ArtifactUploadDto
     {
-        public string Title { get; set; }
-        public IFormFile File { get; set; }
+        public required string Title { get; set; }
+        public required IFormFile File { get; set; }
     }
 }
