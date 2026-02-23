@@ -13,8 +13,6 @@ using SRN.Infrastructure.Persistence;
 using SRN.Infrastructure.Repositories;
 using System.Text;
 
-// [新增] 1. 初始化启动日志 (Bootstrap Logger)
-// 作用：即使 Appsettings 还没加载或者依赖注入挂了，也能记录下“程序启动失败”的致命错误
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
@@ -25,19 +23,16 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // [新增] 2. 接入 Serilog 接管系统日志
     builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration) // 读取配置
+        .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext()
-        .WriteTo.Console()); // 输出到控制台，你也可以加 .WriteTo.File(...)
+        .WriteTo.Console());
 
-    // --- 数据库配置 ---
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(connectionString));
 
-    // --- 区块链服务配置 ---
     var blockchainProvider = builder.Configuration["Blockchain:Provider"];
     if (blockchainProvider == "Real")
     {
@@ -55,12 +50,10 @@ try
     builder.Services.AddScoped<IArtifactService, SRN.Application.Services.ArtifactService>();
     builder.Services.AddScoped<INotificationService, SRN.API.Services.SignalRNotificationService>();
 
-    // --- Identity 配置 ---
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
 
-    // --- JWT 配置 ---
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
     var secretKey = jwtSettings["Key"] ?? "DefaultSecretKey_MustBeLongerThan32Characters_ForSafety";
     var key = Encoding.ASCII.GetBytes(secretKey);
@@ -84,7 +77,6 @@ try
         };
     });
 
-    // --- CORS 配置 ---
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", policy =>
@@ -96,16 +88,12 @@ try
         });
     });
 
-    // --- Controller & FluentValidation ---
     builder.Services.AddControllers();
 
-    // [新增] 3. 自动注册 FluentValidation
-    // 这会自动扫描整个项目，找到你写的 Validator 类并注入
     builder.Services.AddFluentValidationAutoValidation()
                     .AddFluentValidationClientsideAdapters();
-    builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+    builder.Services.AddValidatorsFromAssemblyContaining<SRN.Application.Validators.ArtifactUploadDtoValidator>();
 
-    // --- SignalR & Swagger ---
     builder.Services.AddSignalR();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
@@ -136,12 +124,7 @@ try
 
     var app = builder.Build();
 
-    // --- 中间件管道 ---
-
     app.UseMiddleware<SRN.API.Middleware.ExceptionMiddleware>();
-
-    // [新增] 4. Serilog 请求日志 (必须在 StaticFiles 之后，Endpoint 之前)
-    // 它可以记录每个 HTTP 请求的耗时、状态码，非常适合排查“为什么接口慢”
     app.UseSerilogRequestLogging();
 
     if (app.Environment.IsDevelopment())
@@ -167,9 +150,9 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application terminated unexpectedly"); // 捕获致命错误
+    Log.Fatal(ex, "Application terminated unexpectedly");
 }
 finally
 {
-    Log.CloseAndFlush(); // 确保日志写完再退出
+    Log.CloseAndFlush();
 }
