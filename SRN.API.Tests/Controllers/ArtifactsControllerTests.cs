@@ -4,8 +4,6 @@ using Moq;
 using SRN.API.Controllers;
 using SRN.API.Hubs;
 using SRN.Domain.Interfaces;
-using SRN.Infrastructure.Blockchain;
-using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SRN.API.Tests.Controllers

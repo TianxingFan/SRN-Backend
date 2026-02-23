@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using SRN.API.DTOs;
+using SRN.Application.DTOs;
 
 namespace SRN.API.Validators
 {

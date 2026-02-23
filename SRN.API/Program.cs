@@ -1,17 +1,17 @@
-﻿using FluentValidation; // [新增]
-using FluentValidation.AspNetCore; // [新增]
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Serilog; // [新增]
+using Serilog;
 using SRN.API.Hubs;
-using SRN.API.Middleware;
+using SRN.Application.Interfaces;
 using SRN.Domain.Entities;
+using SRN.Domain.Interfaces;
 using SRN.Infrastructure.Blockchain;
 using SRN.Infrastructure.Persistence;
-using System.Text;
-using SRN.Domain.Interfaces;
 using SRN.Infrastructure.Repositories;
+using System.Text;
 
 // [新增] 1. 初始化启动日志 (Bootstrap Logger)
 // 作用：即使 Appsettings 还没加载或者依赖注入挂了，也能记录下“程序启动失败”的致命错误
@@ -51,6 +51,9 @@ try
     }
 
     builder.Services.AddScoped<IArtifactRepository, ArtifactRepository>();
+
+    builder.Services.AddScoped<IArtifactService, SRN.Application.Services.ArtifactService>();
+    builder.Services.AddScoped<INotificationService, SRN.API.Services.SignalRNotificationService>();
 
     // --- Identity 配置 ---
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>()

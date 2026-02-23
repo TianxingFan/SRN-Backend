@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace SRN.Infrastructure.Blockchain
+﻿namespace SRN.Domain.Interfaces
 {
     public interface IBlockchainService
     {

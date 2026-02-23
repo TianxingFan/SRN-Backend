@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace SRN.API.DTOs
+namespace SRN.Application.DTOs
 {
     public class ArtifactUploadDto
     {

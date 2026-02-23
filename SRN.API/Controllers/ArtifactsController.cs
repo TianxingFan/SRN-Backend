@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using SRN.API.DTOs;
+using SRN.Application.DTOs;
 using SRN.API.Hubs;
 using SRN.Domain.Entities;
-using SRN.Domain.Interfaces; // [新增]
-using SRN.Infrastructure.Blockchain;
+using SRN.Domain.Interfaces;
 using System.Security.Claims;
 using System.Security.Cryptography;
 

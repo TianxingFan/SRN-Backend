@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Nethereum.ABI.FunctionEncoding.Attributes;
-using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
-using System.IO;
-using System.Threading.Tasks;
+using SRN.Domain.Interfaces;
 
 namespace SRN.Infrastructure.Blockchain
 {

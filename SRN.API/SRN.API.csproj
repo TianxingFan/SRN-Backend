@@ -26,6 +26,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\SRN.Application\SRN.Application.csproj" />
+		<ProjectReference Include="..\SRN.Domain\SRN.Domain.csproj" />
 		<ProjectReference Include="..\SRN.Infrastructure\SRN.Infrastructure.csproj" />
 	</ItemGroup>
 

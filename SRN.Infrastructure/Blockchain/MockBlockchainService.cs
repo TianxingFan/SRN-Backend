@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using System;
+﻿using SRN.Domain.Interfaces;
 
 namespace SRN.Infrastructure.Blockchain
 {

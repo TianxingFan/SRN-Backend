@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SRN.API.DTOs
+namespace SRN.Application.DTOs
 {
     public class RegisterDto
     {

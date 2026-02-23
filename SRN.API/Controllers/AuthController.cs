@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using SRN.API.DTOs;
+using SRN.Application.DTOs;
 using SRN.Domain.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
