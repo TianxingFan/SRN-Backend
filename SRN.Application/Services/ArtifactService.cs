@@ -12,26 +12,26 @@ namespace SRN.Application.Services
         private readonly IArtifactRepository _repository;
         private readonly IBlockchainService _blockchainService;
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly INotificationService _notificationService; // 🌟 使用通知服务
+        private readonly INotificationService _notificationService;
+        private readonly IFileStorageService _fileStorageService;
 
         public ArtifactService(
             IArtifactRepository repository,
             IBlockchainService blockchainService,
             IServiceScopeFactory scopeFactory,
-            INotificationService notificationService) // 🌟 注入
+            INotificationService notificationService,
+            IFileStorageService fileStorageService)
         {
             _repository = repository;
             _blockchainService = blockchainService;
             _scopeFactory = scopeFactory;
             _notificationService = notificationService;
+            _fileStorageService = fileStorageService;
         }
-
         public async Task<(bool Success, string Message, Guid? ArtifactId, string? Hash)> UploadArtifactAsync(
             ArtifactUploadDto dto,
-            string userId,
-            string uploadsFolder)
+            string userId)
         {
-            // 1. 计算 Hash
             string fileHash;
             using (var sha256 = SHA256.Create())
             using (var stream = dto.File.OpenReadStream())
@@ -42,26 +42,12 @@ namespace SRN.Application.Services
                     .ToLowerInvariant();
             }
 
-            // 2. 查重
             var existing = await _repository.GetByHashAsync(fileHash);
             if (existing != null)
                 return (false, "Artifact already exists", existing.ArtifactId, fileHash);
 
-            // 3. 存文件
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
+            var filePath = await _fileStorageService.SaveFileAsync(dto.File, "artifacts");
 
-            var filePath = Path.Combine(
-                uploadsFolder,
-                $"{Guid.NewGuid()}_{dto.File.FileName}"
-            );
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.File.CopyToAsync(stream);
-            }
-
-            // 4. 存数据库
             var artifact = new Artifact
             {
                 ArtifactId = Guid.NewGuid(),
@@ -78,7 +64,6 @@ namespace SRN.Application.Services
             var currentArtifactId = artifact.ArtifactId.ToString();
             var currentFileHash = fileHash;
 
-            // 5. 后台执行区块链上链
             _ = Task.Run(async () =>
             {
                 using var scope = _scopeFactory.CreateScope();
@@ -97,7 +82,6 @@ namespace SRN.Application.Services
                         await bgRepository.UpdateAsync(artifactToUpdate);
                     }
 
-                    // 🌟 成功通知
                     await bgNotifier.SendSuccessAsync(
                         userId,
                         $"✅ 上链成功！TxHash: {txHash}",
@@ -113,7 +97,6 @@ namespace SRN.Application.Services
                         await bgRepository.UpdateAsync(artifactToUpdate);
                     }
 
-                    // 🌟 失败通知
                     await bgNotifier.SendFailureAsync(
                         userId,
                         $"❌ 上链失败：{ex.Message}",

@@ -46,9 +46,9 @@ try
     }
 
     builder.Services.AddScoped<IArtifactRepository, ArtifactRepository>();
-
     builder.Services.AddScoped<IArtifactService, SRN.Application.Services.ArtifactService>();
     builder.Services.AddScoped<INotificationService, SRN.API.Services.SignalRNotificationService>();
+    builder.Services.AddScoped<IFileStorageService, SRN.Infrastructure.Services.LocalFileStorageService>();
 
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>()
