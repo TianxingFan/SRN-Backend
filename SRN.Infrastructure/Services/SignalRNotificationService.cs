@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using SRN.API.Hubs;
 using SRN.Application.Interfaces;
+using SRN.Infrastructure.Hubs;
 
-namespace SRN.API.Services
+namespace SRN.Infrastructure.Services
 {
     public class SignalRNotificationService : INotificationService
     {

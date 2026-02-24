@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using SRN.API.Hubs;
 using SRN.Application.Interfaces;
 using SRN.Domain.Entities;
 using SRN.Domain.Interfaces;
@@ -47,7 +46,7 @@ try
 
     builder.Services.AddScoped<IArtifactRepository, ArtifactRepository>();
     builder.Services.AddScoped<IArtifactService, SRN.Application.Services.ArtifactService>();
-    builder.Services.AddScoped<INotificationService, SRN.API.Services.SignalRNotificationService>();
+    builder.Services.AddScoped<INotificationService, SRN.Infrastructure.Services.SignalRNotificationService>();
     builder.Services.AddScoped<IFileStorageService, SRN.Infrastructure.Services.LocalFileStorageService>();
 
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -144,7 +143,7 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
-    app.MapHub<NotificationHub>("/notificationHub");
+    app.MapHub<SRN.Infrastructure.Hubs.NotificationHub>("/notificationHub");
 
     app.Run();
 }
