@@ -3,156 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRN Blockchain Artifact Manager</title>
+    <title>SRN Lab - Research Publications</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <style>
         body {
-            padding-top: 56px;
-        }
-        .upload-area {
-            border: 2px dashed #ccc;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
+            padding-top: 70px;
+            background-color: #f8f9fa;
+            color: #333;
         }
 
-            .upload-area.dragover {
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            background-color: #fff;
+            transition: 0.2s;
+        }
+
+            .upload-area:hover, .upload-area.dragover {
                 border-color: #0d6efd;
-                background-color: #f0f8ff;
+                background-color: #f4f8ff;
             }
+
+        .hash-text {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8em;
+            color: #999;
+        }
+
+        .team-photo {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">SRN Artifact</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#home">SRN Lab</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#upload">Upload</a></li>
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#team">Our Team</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#papers">Publications</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
                     <li class="nav-item"><a class="nav-link" href="#verify">Verify</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item auth-required" style="display: none;"><a class="nav-link text-warning" href="#upload">Workspace</a></li>
                 </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><button class="btn btn-outline-primary" onclick="showLoginModal()">Login</button></li>
-                    <li class="nav-item"><button class="btn btn-outline-secondary ms-2" onclick="showRegisterModal()">Register</button></li>
-                    <li class="nav-item" id="logoutBtn" style="display: none;"><button class="btn btn-outline-danger ms-2" onclick="logout()">Logout</button></li>
+                <ul class="navbar-nav">
+                    <li class="nav-item guest-only"><button class="btn btn-outline-light btn-sm mt-1" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button></li>
+                    <li class="nav-item guest-only"><button class="btn btn-primary btn-sm ms-2 mt-1" data-bs-toggle="modal" data-bs-target="#registerModal">Apply to Join</button></li>
+                    <li class="nav-item auth-required" style="display: none;"><button class="btn btn-outline-danger btn-sm mt-1" onclick="logout()">Logout</button></li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
+
         <section id="home" class="mb-5">
-            <h1>Welcome to SRN Blockchain Artifact Manager</h1>
-            <p>Securely upload and verify artifacts on the blockchain. Real-time notifications powered by SignalR.</p>
-            <button class="btn btn-primary" onclick="navigateTo('#upload')">Start Uploading</button>
+            <div class="p-5 mb-4 bg-white rounded-3 shadow-sm border text-center">
+                <h1 class="display-5 fw-bold mb-3">Welcome to the SRN Research Lab</h1>
+                <p class="col-md-8 mx-auto fs-5 text-muted mb-4">
+                    We are dedicated to advancing research in distributed systems and computer science. Explore our latest publications and meet our research team.
+                </p>
+                <button class="btn btn-primary px-4" onclick="navigateTo('#papers')">View Publications</button>
+            </div>
         </section>
 
-        <section id="upload" class="mb-5" style="display: none;">
-            <h2>Upload Artifact</h2>
-            <div class="mb-3">
-                <label for="titleInput" class="form-label">Title</label>
-                <input type="text" id="titleInput" class="form-control" placeholder="Artifact Title">
+        <section id="team" class="mb-5" style="display: none;">
+            <div class="text-center mb-5">
+                <h2>Our Team</h2>
+                <p class="text-muted">Meet the researchers behind the SRN Lab.</p>
             </div>
-            <div class="upload-area mb-3" id="uploadArea">
-                <p id="uploadText">Drag & drop file here or click to select</p>
-                <input type="file" id="fileInput" style="display: none;">
+            <div class="row text-center">
+                <div class="col-md-4 mb-4">
+                    <img src="https://via.placeholder.com/150/007bff/ffffff?text=Prof." alt="Professor" class="team-photo">
+                    <h5>Dr. John Doe</h5>
+                    <p class="text-muted small">Principal Investigator</p>
+                    <p class="small">Focuses on network security, consensus algorithms, and distributed systems architecture.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <img src="https://via.placeholder.com/150/28a745/ffffff?text=Alice" alt="Researcher 1" class="team-photo">
+                    <h5>Alice Smith</h5>
+                    <p class="text-muted small">Ph.D. Candidate</p>
+                    <p class="small">Researching cryptography and privacy-preserving smart contract protocols.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <img src="https://via.placeholder.com/150/17a2b8/ffffff?text=Bob" alt="Researcher 2" class="team-photo">
+                    <h5>Bob Johnson</h5>
+                    <p class="text-muted small">M.Sc. Student</p>
+                    <p class="small">Working on performance optimization and scalable blockchain frameworks.</p>
+                </div>
             </div>
-            <button class="btn btn-primary" onclick="uploadFile()">Upload to Blockchain</button>
-            <div id="uploadStatus" class="mt-3"></div>
+        </section>
 
-            <h3 class="mt-4">Upload History</h3>
-            <ul id="historyList" class="list-group"></ul>
+        <section id="papers" class="mb-5" style="display: none;">
+            <h2 class="mb-2">Publications</h2>
+            <p class="text-muted mb-4">Download our latest research papers. Authenticity can be cryptographically verified using our verification tool.</p>
+            <div class="row" id="publicPapersList">
+                <div class="text-center mt-4"><div class="spinner-border text-secondary" role="status"></div><p>Loading publications...</p></div>
+            </div>
+        </section>
+
+        <section id="contact" class="mb-5" style="display: none;">
+            <div class="card shadow-sm col-md-8 mx-auto">
+                <div class="card-body p-5 text-center">
+                    <h2 class="mb-3">Contact Us</h2>
+                    <p class="text-muted mb-4">For academic inquiries, collaboration opportunities, or general questions, please reach out to us via email.</p>
+                    <h5>📧 official@srnlab.edu</h5>
+                    <p class="mt-4 small text-muted">Or apply to join our lab by clicking "Apply to Join" in the top right corner.</p>
+                </div>
+            </div>
         </section>
 
         <section id="verify" class="mb-5" style="display: none;">
-            <h2>Verify Artifact</h2>
-            <div class="mb-3">
-                <label for="hashInput" class="form-label">File Hash</label>
-                <input type="text" id="hashInput" class="form-control" placeholder="Enter hash to verify">
+            <div class="card shadow-sm border-0 bg-light col-md-8 mx-auto">
+                <div class="card-body p-4">
+                    <h4 class="mb-3 text-center">🔍 Document Authenticity Verification</h4>
+                    <p class="text-muted text-center small mb-4">
+                        To guarantee academic integrity, all SRN Lab publications are anchored to a blockchain. Enter the SHA-256 hash of any downloaded PDF to verify its origin.
+                    </p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="hashInput" class="form-control" placeholder="Enter file hash (e.g., 8a1f...)" aria-label="Hash">
+                        <button class="btn btn-secondary" onclick="verifyHash()">Verify</button>
+                    </div>
+                    <div id="verifyResult" class="mt-3 text-center"></div>
+                </div>
             </div>
-            <button class="btn btn-primary" onclick="verifyHash()">Verify</button>
-            <div id="verifyResult" class="mt-3"></div>
         </section>
 
-        <section id="about" class="mb-5" style="display: none;">
-            <h2>About This Project</h2>
-            <p>This is a blockchain-based artifact management system for secure file anchoring and verification.</p>
-            <ul>
-                <li><strong>Blockchain Integration</strong>: Uses Ethereum (Sepolia) for immutable storage. <span data-bs-toggle="tooltip" title="Blockchain ensures tamper-proof records, preventing alterations after upload.">ℹ️</span></li>
-                <li><strong>SignalR Real-time Notifications</strong>: Provides instant updates on upload status. <span data-bs-toggle="tooltip" title="WebSocket-based for asynchronous, non-blocking interactions—users don't wait for blockchain confirmation.">ℹ️</span></li>
-                <li><strong>File Hashing</strong>: SHA-256 for unique identifiers. <span data-bs-toggle="tooltip" title="Ensures file integrity and duplicates detection.">ℹ️</span></li>
-                <li><strong>Deployment</strong>: Backend in ASP.NET Core, frontend in Bootstrap for simplicity. <span data-bs-toggle="tooltip" title="Chosen for rapid development and cross-device compatibility.">ℹ️</span></li>
-            </ul>
+        <section id="upload" class="mb-5" style="display: none;">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Submit New Paper</h5>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Paper Title</label>
+                                <input type="text" id="titleInput" class="form-control form-control-sm" placeholder="Title">
+                            </div>
+                            <div class="upload-area mb-3" id="uploadArea">
+                                <p id="uploadText" class="text-muted mb-0 small">📄 Click or Drag PDF Here</p>
+                                <input type="file" id="fileInput" style="display: none;" accept="application/pdf">
+                            </div>
+                            <button class="btn btn-dark w-100 btn-sm" onclick="uploadFile()">Submit & Anchor</button>
+                            <div id="uploadStatus" class="mt-3 small"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">My Submissions</h5>
+                            <ul id="historyList" class="list-group list-group-flush">
+                                <li class="list-group-item text-muted text-center py-4">No submissions yet.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
+
     </div>
 
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto">Notification</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        <div id="liveToast" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body small" id="toastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
-            <div class="toast-body"></div>
         </div>
     </div>
 
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                <div class="modal-header bg-light">
+                    <h6 class="modal-title">Lab Member Login</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="loginEmail" class="form-label">Email</label>
-                        <input type="email" id="loginEmail" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="loginPassword" class="form-label">Password</label>
-                        <input type="password" id="loginPassword" class="form-control">
-                    </div>
-                    <div id="loginStatus" class="alert alert-danger" style="display: none;"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="loginUser()">Login</button>
+                    <input type="email" id="loginEmail" class="form-control form-control-sm mb-3" placeholder="Email">
+                    <input type="password" id="loginPassword" class="form-control form-control-sm mb-3" placeholder="Password">
+                    <button class="btn btn-dark btn-sm w-100" onclick="loginUser()">Login</button>
+                    <div id="loginStatus" class="text-danger mt-2 small text-center"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="registerModalLabel">Register</h5>
+                <div class="modal-header bg-light">
+                    <h6 class="modal-title">Apply for Lab Access</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="registerEmail" class="form-label">Email</label>
-                        <input type="email" id="registerEmail" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="registerPassword" class="form-label">Password</label>
-                        <input type="password" id="registerPassword" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="registerWallet" class="form-label">Wallet Address</label>
-                        <input type="text" id="registerWallet" class="form-control">
-                    </div>
-                    <div id="registerStatus" class="alert alert-danger" style="display: none;"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="registerUser()">Register</button>
+                    <input type="email" id="registerEmail" class="form-control form-control-sm mb-3" placeholder="Academic Email">
+                    <input type="password" id="registerPassword" class="form-control form-control-sm mb-3" placeholder="Password (Min 6 chars)">
+                    <button class="btn btn-primary btn-sm w-100" onclick="registerUser()">Submit Application</button>
+                    <div id="registerStatus" class="text-danger mt-2 small text-center"></div>
                 </div>
             </div>
         </div>
@@ -161,45 +223,85 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const baseUrl = '';
-        let currentArtifactId = null;
+        let connection = null;
 
         function navigateTo(section) {
             document.querySelectorAll('section').forEach(s => s.style.display = 'none');
-            document.querySelector(section).style.display = 'block';
+            const target = document.querySelector(section);
+            if (target) target.style.display = 'block';
+
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             const activeLink = document.querySelector(`a[href="${section}"]`);
             if (activeLink) activeLink.classList.add('active');
+
+            if (section === '#papers') fetchPublicPapers();
+            if (section === '#upload') renderHistory();
         }
 
-        function connectSignalR() {
-            const userId = localStorage.getItem('userId');
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl(`${baseUrl}/notificationHub?user=${userId}`)
-                .build();
+        async function fetchPublicPapers() {
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/public`);
+                if (!res.ok) throw new Error('Network error');
+                const papers = await res.json();
+                const container = document.getElementById('publicPapersList');
+                container.innerHTML = '';
 
-            connection.on("ReceiveMessage", (user, message, artifactId) => {
-                showToast(message);
-                renderHistory();
-            });
+                if (papers.length === 0) {
+                    container.innerHTML = '<div class="col-12"><div class="alert alert-light border text-center">No publications available yet.</div></div>';
+                    return;
+                }
 
-            connection.start().catch(err => console.error('SignalR Error:', err));
-            return connection;
+                papers.forEach(p => {
+                    container.innerHTML += `
+                            <div class="col-12 mb-3">
+                                <div class="card border shadow-sm">
+                                    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                        <div style="flex: 1; min-width: 250px;">
+                                            <h5 class="mb-1">${p.title}</h5>
+                                            <p class="text-muted small mb-1">Published: ${new Date(p.uploadDate).toLocaleDateString()}</p>
+                                            <span class="hash-text">Hash: ${p.fileHash}</span>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-outline-dark btn-sm" onclick="downloadPublicArtifact('${p.artifactId}')">⬇️ Download PDF</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                });
+            } catch (err) {
+                document.getElementById('publicPapersList').innerHTML = `<div class="text-danger">Failed to load papers.</div>`;
+            }
         }
-        let connection = null;
+
+        async function downloadPublicArtifact(id) {
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/public/download/${id}`);
+                if (!res.ok) throw new Error('File not found');
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Paper_${id.substring(0, 8)}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                showToast(`Download failed: ${err.message}`);
+            }
+        }
 
         async function uploadFile() {
             const token = localStorage.getItem('token');
-            if (!token) return alert('Please login first.');
-
             const title = document.getElementById('titleInput').value;
             const file = document.getElementById('fileInput').files[0];
-            if (!title || !file) return alert('Missing fields');
+
+            if (!title || !file) return showToast('Provide a title and PDF.');
 
             const formData = new FormData();
             formData.append('File', file);
             formData.append('Title', title);
 
-            document.getElementById('uploadStatus').innerHTML = '<div class="alert alert-info">Uploading...</div>';
+            document.getElementById('uploadStatus').innerHTML = '<span class="text-info">Processing...</span>';
 
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/upload`, {
@@ -207,89 +309,57 @@
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
-                if (!res.ok) throw new Error('Upload failed');
-                const data = await res.json();
-                currentArtifactId = data.artifactId;
-                document.getElementById('uploadStatus').innerHTML = '<div class="alert alert-success">Submitted! Waiting for blockchain...</div>';
+                if (!res.ok) throw new Error(await res.text());
+
+                document.getElementById('uploadStatus').innerHTML = '<span class="text-success">✅ Submitted.</span>';
+                document.getElementById('titleInput').value = '';
+                document.getElementById('uploadText').textContent = '📄 Click or Drag PDF Here';
                 renderHistory();
             } catch (err) {
-                document.getElementById('uploadStatus').innerHTML = '<div class="alert alert-danger">Upload failed: ' + err.message + '</div>';
+                document.getElementById('uploadStatus').innerHTML = `<span class="text-danger">Failed: ${err.message}</span>`;
             }
         }
-
-        async function verifyHash() {
-            const hash = document.getElementById('hashInput').value;
-            if (!hash) return alert('Enter hash');
-
-            try {
-                const res = await fetch(`${baseUrl}/api/artifacts/verify/${hash}`);
-                if (!res.ok) throw new Error('Verify failed');
-                const data = await res.json();
-                document.getElementById('verifyResult').innerHTML = `<div class="alert alert-${data.status.includes('Verified') ? 'success' : 'danger'}">${data.message}</div>`;
-            } catch (err) {
-                document.getElementById('verifyResult').innerHTML = '<div class="alert alert-danger">Verification failed: ' + err.message + '</div>';
-            }
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('liveToast');
-            toast.querySelector('.toast-body').textContent = message;
-            new bootstrap.Toast(toast).show();
-        }
-
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const uploadText = document.getElementById('uploadText');
-
-        uploadArea.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                uploadText.textContent = `Selected: ${fileInput.files[0].name}`;
-            }
-        });
-
-        uploadArea.addEventListener('dragover', e => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-        uploadArea.addEventListener('drop', e => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            fileInput.files = e.dataTransfer.files;
-            if (fileInput.files.length > 0) {
-                uploadText.textContent = `Dropped: ${fileInput.files[0].name}`;
-            }
-        });
 
         async function renderHistory() {
             const token = localStorage.getItem('token');
             if (!token) return;
 
-            const list = document.getElementById('historyList');
-            list.innerHTML = '';
-
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/history`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (!res.ok) throw new Error('Failed to fetch history');
                 const history = await res.json();
+                const list = document.getElementById('historyList');
+                list.innerHTML = '';
+
+                if (history.length === 0) {
+                    list.innerHTML = '<li class="list-group-item text-muted text-center py-4">No submissions yet.</li>';
+                    return;
+                }
+
                 history.forEach(h => {
-                    const item = document.createElement('li');
-                    item.className = 'list-group-item d-flex justify-content-between align-items-center';
-                    item.innerHTML = `${h.title} - Status: ${h.status} (ID: ${h.artifactId}) <button class="btn btn-sm btn-secondary" onclick="downloadArtifact('${h.artifactId}')">Download</button>`;
-                    list.appendChild(item);
+                    const statusColor = h.status === 'Registered' ? 'success' : (h.status === 'Failed' ? 'danger' : 'warning');
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center py-3';
+                    li.innerHTML = `
+                            <div>
+                                <strong class="d-block">${h.title}</strong>
+                                <span class="badge bg-${statusColor} mt-1">${h.status}</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="downloadPrivateArtifact('${h.artifactId}')">PDF</button>
+                                <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteArtifact('${h.artifactId}')">Delete</button>
+                            </div>
+                        `;
+                    list.appendChild(li);
                 });
             } catch (err) {
-                console.error(err);
+                console.error('History fetch failed', err);
             }
         }
 
-        async function downloadArtifact(id) {
+        async function downloadPrivateArtifact(id) {
             const token = localStorage.getItem('token');
-            if (!token) return alert('Please login first.');
-
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/download/${id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -299,96 +369,131 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'artifact';
+                a.download = `Private_Artifact.pdf`;
                 a.click();
-                URL.revokeObjectURL(url);
+            } catch (err) { showToast(err.message); }
+        }
+
+        async function deleteArtifact(id) {
+            if (!confirm('Are you sure you want to delete this paper?')) return;
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Delete failed');
+                renderHistory();
+            } catch (err) { showToast(err.message); }
+        }
+
+        async function verifyHash() {
+            const hash = document.getElementById('hashInput').value.trim();
+            if (!hash) return showToast('Please enter a hash.');
+
+            document.getElementById('verifyResult').innerHTML = '<span class="text-secondary">Querying registry...</span>';
+
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/verify/${hash}`);
+                if (!res.ok) throw new Error('Not found');
+                const data = await res.json();
+
+                document.getElementById('verifyResult').innerHTML = `
+                        <div class="alert alert-success text-start small mb-0">
+                            <strong>✅ Authentic Record</strong><br>
+                            Timestamp: ${new Date(data.details.registeredAt).toLocaleString()}
+                        </div>`;
             } catch (err) {
-                alert('Download failed: ' + err.message);
+                document.getElementById('verifyResult').innerHTML = `
+                        <div class="alert alert-danger small mb-0">❌ Record not found in the registry.</div>`;
             }
-        }
-
-        function showLoginModal() {
-            new bootstrap.Modal(document.getElementById('loginModal')).show();
-        }
-
-        function showRegisterModal() {
-            new bootstrap.Modal(document.getElementById('registerModal')).show();
         }
 
         async function loginUser() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            const status = document.getElementById('loginStatus');
-
-            status.style.display = 'none';
-
             try {
                 const res = await fetch(`${baseUrl}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-                if (!res.ok) throw new Error(await res.text());
+                if (!res.ok) throw new Error('Invalid credentials');
                 const data = await res.json();
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userId', data.user.id);
                 bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
-                updateNavAfterLogin();
+                updateUIState();
                 connection = connectSignalR();
-                renderHistory();
-            } catch (err) {
-                status.textContent = err.message;
-                status.style.display = 'block';
-            }
+                navigateTo('#upload');
+            } catch (err) { document.getElementById('loginStatus').textContent = err.message; }
         }
 
         async function registerUser() {
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
-            const wallet = document.getElementById('registerWallet').value;
-            const status = document.getElementById('registerStatus');
-
-            status.style.display = 'none';
-
             try {
                 const res = await fetch(`${baseUrl}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, walletAddress: wallet })
+                    body: JSON.stringify({ email, password, walletAddress: "" })
                 });
-                if (!res.ok) throw new Error(await res.text());
-                await res.json();
+                if (!res.ok) throw new Error("Format error or email exists.");
                 bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
-                alert('Registered! Please login.');
-            } catch (err) {
-                status.textContent = err.message;
-                status.style.display = 'block';
-            }
+                showToast('Application sent! Please login.');
+            } catch (err) { document.getElementById('registerStatus').textContent = err.message; }
         }
 
         function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userId');
-            updateNavAfterLogin();
+            localStorage.clear();
             if (connection) connection.stop();
-            document.getElementById('historyList').innerHTML = '';
+            updateUIState();
+            navigateTo('#home');
         }
 
-        function updateNavAfterLogin() {
+        function updateUIState() {
             const isLoggedIn = !!localStorage.getItem('token');
-            document.querySelectorAll('.navbar-nav .btn-outline-primary, .btn-outline-secondary').forEach(btn => btn.style.display = isLoggedIn ? 'none' : 'inline-block');
-            document.getElementById('logoutBtn').style.display = isLoggedIn ? 'inline-block' : 'none';
+            document.querySelectorAll('.guest-only').forEach(el => el.style.display = isLoggedIn ? 'none' : 'block');
+            document.querySelectorAll('.auth-required').forEach(el => el.style.display = isLoggedIn ? 'block' : 'none');
         }
+
+        function connectSignalR() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) return null;
+            const conn = new signalR.HubConnectionBuilder().withUrl(`${baseUrl}/notificationHub?user=${userId}`).build();
+            conn.on("ReceiveMessage", (sender, message, artifactId) => {
+                showToast(message);
+                if (document.querySelector('#upload').style.display === 'block') renderHistory();
+            });
+            conn.start().catch(err => console.error(err));
+            return conn;
+        }
+
+        function showToast(msg) {
+            document.getElementById('toastMessage').textContent = msg;
+            new bootstrap.Toast(document.getElementById('liveToast')).show();
+        }
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) document.getElementById('uploadText').textContent = fileInput.files[0].name;
+        });
+        uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault(); uploadArea.classList.remove('dragover');
+            fileInput.files = e.dataTransfer.files;
+            if (fileInput.files.length > 0) document.getElementById('uploadText').textContent = fileInput.files[0].name;
+        });
 
         window.onload = () => {
+            updateUIState();
             navigateTo('#home');
-            updateNavAfterLogin();
             if (localStorage.getItem('token')) {
                 connection = connectSignalR();
-                renderHistory();
             }
-            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.addEventListener('click', e => {
                     e.preventDefault();
