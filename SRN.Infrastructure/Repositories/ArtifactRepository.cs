@@ -37,6 +37,14 @@ namespace SRN.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Artifact>> GetPublicArtifactsAsync()
+        {
+            return await _context.Artifacts
+                .Where(a => a.Status == "Registered")
+                .OrderByDescending(a => a.UploadDate)
+                .ToListAsync();
+        }
+
         public async Task AddAsync(Artifact artifact)
         {
             _context.Artifacts.Add(artifact);
@@ -46,6 +54,12 @@ namespace SRN.Infrastructure.Repositories
         public async Task UpdateAsync(Artifact artifact)
         {
             _context.Artifacts.Update(artifact);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Artifact artifact)
+        {
+            _context.Artifacts.Remove(artifact);
             await _context.SaveChangesAsync();
         }
     }

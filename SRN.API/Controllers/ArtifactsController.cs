@@ -86,5 +86,47 @@ namespace SRN.API.Controllers
             var history = await _artifactService.GetHistoryAsync(userId);
             return Ok(history);
         }
+
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return BadRequest("Invalid user ID.");
+
+            var success = await _artifactService.DeleteArtifactAsync(id, userId);
+
+            if (!success) return NotFound(new { message = "Artifact not found or access denied." });
+
+            return Ok(new { message = "Artifact deleted successfully." });
+        }
+
+        [HttpGet("public")]
+        public async Task<IActionResult> GetPublicArtifacts()
+        {
+            var publicArtifacts = await _artifactService.GetPublicArtifactsAsync();
+            return Ok(publicArtifacts);
+        }
+
+        [HttpGet("public/download/{id}")]
+        public async Task<IActionResult> PublicDownload(Guid id)
+        {
+            var artifact = await _artifactService.GetPublicArtifactForDownloadAsync(id);
+
+            if (artifact == null) return NotFound("Artifact not found or not yet published.");
+
+            var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), artifact.FilePath);
+
+            if (!System.IO.File.Exists(absolutePath)) return NotFound("File missing on server.");
+
+            var memory = new MemoryStream();
+            using (var stream = new FileStream(absolutePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                await stream.CopyToAsync(memory);
+            }
+            memory.Position = 0;
+
+            return File(memory, "application/octet-stream", Path.GetFileName(absolutePath));
+        }
     }
 }

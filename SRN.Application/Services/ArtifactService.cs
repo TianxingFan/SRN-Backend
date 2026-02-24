@@ -28,6 +28,7 @@ namespace SRN.Application.Services
             _notificationService = notificationService;
             _fileStorageService = fileStorageService;
         }
+
         public async Task<(bool Success, string Message, Guid? ArtifactId, string? Hash)> UploadArtifactAsync(
             ArtifactUploadDto dto,
             string userId)
@@ -139,6 +140,47 @@ namespace SRN.Application.Services
                 a.FileHash,
                 a.TxHash
             });
+        }
+
+        public async Task<IEnumerable<object>> GetPublicArtifactsAsync()
+        {
+            var artifacts = await _repository.GetPublicArtifactsAsync();
+            return artifacts.Select(a => new
+            {
+                a.ArtifactId,
+                a.Title,
+                a.Status,
+                a.UploadDate,
+                a.FileHash,
+                a.TxHash
+            });
+        }
+
+        public async Task<Artifact?> GetPublicArtifactForDownloadAsync(Guid id)
+        {
+            var artifact = await _repository.GetByIdAsync(id);
+
+            if (artifact != null && artifact.Status == "Registered")
+            {
+                return artifact;
+            }
+
+            return null;
+        }
+
+        public async Task<bool> DeleteArtifactAsync(Guid id, string userId)
+        {
+            var artifact = await _repository.GetByIdAndOwnerAsync(id, userId);
+            if (artifact == null) return false;
+
+            var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), artifact.FilePath);
+            if (File.Exists(absolutePath))
+            {
+                File.Delete(absolutePath);
+            }
+
+            await _repository.DeleteAsync(artifact);
+            return true;
         }
     }
 }

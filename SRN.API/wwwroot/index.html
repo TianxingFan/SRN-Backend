@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SRN Blockchain Artifact Manager</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- SignalR JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <style>
         body {
             padding-top: 56px;
         }
-        /* Navbar space */
         .upload-area {
             border: 2px dashed #ccc;
             padding: 20px;
@@ -27,7 +24,6 @@
     </style>
 </head>
 <body>
-    <!-- 导航栏 -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">SRN Artifact</a>
@@ -50,16 +46,13 @@
         </div>
     </nav>
 
-    <!-- 主内容容器 -->
     <div class="container mt-4">
-        <!-- Home 页面 -->
         <section id="home" class="mb-5">
             <h1>Welcome to SRN Blockchain Artifact Manager</h1>
             <p>Securely upload and verify artifacts on the blockchain. Real-time notifications powered by SignalR.</p>
             <button class="btn btn-primary" onclick="navigateTo('#upload')">Start Uploading</button>
         </section>
 
-        <!-- Upload 页面 -->
         <section id="upload" class="mb-5" style="display: none;">
             <h2>Upload Artifact</h2>
             <div class="mb-3">
@@ -73,12 +66,10 @@
             <button class="btn btn-primary" onclick="uploadFile()">Upload to Blockchain</button>
             <div id="uploadStatus" class="mt-3"></div>
 
-            <!-- 上传历史列表 -->
             <h3 class="mt-4">Upload History</h3>
             <ul id="historyList" class="list-group"></ul>
         </section>
 
-        <!-- Verify 页面 -->
         <section id="verify" class="mb-5" style="display: none;">
             <h2>Verify Artifact</h2>
             <div class="mb-3">
@@ -89,7 +80,6 @@
             <div id="verifyResult" class="mt-3"></div>
         </section>
 
-        <!-- About 页面 -->
         <section id="about" class="mb-5" style="display: none;">
             <h2>About This Project</h2>
             <p>This is a blockchain-based artifact management system for secure file anchoring and verification.</p>
@@ -102,7 +92,6 @@
         </section>
     </div>
 
-    <!-- Toast 容器（用于推送通知） -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
@@ -113,7 +102,6 @@
         </div>
     </div>
 
-    <!-- Login Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -140,7 +128,6 @@
         </div>
     </div>
 
-    <!-- Register Modal -->
     <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -171,13 +158,11 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const baseUrl = '';  // 改成你的后端 URL（生产时改域名）
-        let currentArtifactId = null;  // 存当前上传 ID 用于过滤推送（虽然后端已针对，但备用）
+        const baseUrl = '';
+        let currentArtifactId = null;
 
-        // 导航切换（模拟 SPA）
         function navigateTo(section) {
             document.querySelectorAll('section').forEach(s => s.style.display = 'none');
             document.querySelector(section).style.display = 'block';
@@ -186,24 +171,22 @@
             if (activeLink) activeLink.classList.add('active');
         }
 
-        // SignalR 连接（带 userId）
         function connectSignalR() {
             const userId = localStorage.getItem('userId');
             const connection = new signalR.HubConnectionBuilder()
-                .withUrl(`${baseUrl}/notificationHub?user=${userId}`)  // 带 userId 支持 Clients.User
+                .withUrl(`${baseUrl}/notificationHub?user=${userId}`)
                 .build();
 
             connection.on("ReceiveMessage", (user, message, artifactId) => {
                 showToast(message);
-                renderHistory();  // 刷新历史
+                renderHistory();
             });
 
             connection.start().catch(err => console.error('SignalR Error:', err));
             return connection;
         }
-        let connection = null;  // 全局 connection
+        let connection = null;
 
-        // 上传文件
         async function uploadFile() {
             const token = localStorage.getItem('token');
             if (!token) return alert('Please login first.');
@@ -228,13 +211,12 @@
                 const data = await res.json();
                 currentArtifactId = data.artifactId;
                 document.getElementById('uploadStatus').innerHTML = '<div class="alert alert-success">Submitted! Waiting for blockchain...</div>';
-                renderHistory();  // 刷新历史
+                renderHistory();
             } catch (err) {
                 document.getElementById('uploadStatus').innerHTML = '<div class="alert alert-danger">Upload failed: ' + err.message + '</div>';
             }
         }
 
-        // 验证哈希
         async function verifyHash() {
             const hash = document.getElementById('hashInput').value;
             if (!hash) return alert('Enter hash');
@@ -249,14 +231,12 @@
             }
         }
 
-        // Toast 显示
         function showToast(message) {
             const toast = document.getElementById('liveToast');
             toast.querySelector('.toast-body').textContent = message;
             new bootstrap.Toast(toast).show();
         }
 
-        // 拖拽上传和点击选择
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const uploadText = document.getElementById('uploadText');
@@ -282,7 +262,6 @@
             }
         });
 
-        // 渲染历史（用 API）
         async function renderHistory() {
             const token = localStorage.getItem('token');
             if (!token) return;
@@ -307,7 +286,6 @@
             }
         }
 
-        // 下载 artifact
         async function downloadArtifact(id) {
             const token = localStorage.getItem('token');
             if (!token) return alert('Please login first.');
@@ -329,17 +307,14 @@
             }
         }
 
-        // 显示登录 modal
         function showLoginModal() {
             new bootstrap.Modal(document.getElementById('loginModal')).show();
         }
 
-        // 显示注册 modal
         function showRegisterModal() {
             new bootstrap.Modal(document.getElementById('registerModal')).show();
         }
 
-        // 登录用户
         async function loginUser() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -356,18 +331,17 @@
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
                 localStorage.setItem('token', data.token);
-                localStorage.setItem('userId', data.user.id);  // 存 userId
+                localStorage.setItem('userId', data.user.id);
                 bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
                 updateNavAfterLogin();
-                connection = connectSignalR();  // 连接 SignalR 带 userId
-                renderHistory();  // 刷新历史
+                connection = connectSignalR();
+                renderHistory();
             } catch (err) {
                 status.textContent = err.message;
                 status.style.display = 'block';
             }
         }
 
-        // 注册用户
         async function registerUser() {
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
@@ -392,7 +366,6 @@
             }
         }
 
-        // 登出
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
@@ -401,25 +374,21 @@
             document.getElementById('historyList').innerHTML = '';
         }
 
-        // 更新导航（登录后隐藏 login/register，显示 logout）
         function updateNavAfterLogin() {
             const isLoggedIn = !!localStorage.getItem('token');
             document.querySelectorAll('.navbar-nav .btn-outline-primary, .btn-outline-secondary').forEach(btn => btn.style.display = isLoggedIn ? 'none' : 'inline-block');
             document.getElementById('logoutBtn').style.display = isLoggedIn ? 'inline-block' : 'none';
         }
 
-        // 初始化
         window.onload = () => {
-            navigateTo('#home');  // 默认显示 Home
+            navigateTo('#home');
             updateNavAfterLogin();
             if (localStorage.getItem('token')) {
                 connection = connectSignalR();
                 renderHistory();
             }
-            // Tooltips
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
-            // 添加导航点击事件
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.addEventListener('click', e => {
                     e.preventDefault();
