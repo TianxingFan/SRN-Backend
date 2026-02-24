@@ -56,24 +56,38 @@ namespace SRN.Application.Services
                 FileHash = fileHash,
                 FilePath = filePath,
                 UploadDate = DateTime.UtcNow,
-                Status = "Pending Blockchain",
+                Status = "Pending Review",
                 OwnerId = userId
             };
 
             await _repository.AddAsync(artifact);
 
+            return (true, "Artifact uploaded and pending admin review", artifact.ArtifactId, fileHash);
+        }
+
+        public async Task<(bool Success, string Message)> ApproveAndRegisterArtifactAsync(Guid artifactId)
+        {
+            var artifact = await _repository.GetByIdAsync(artifactId);
+            if (artifact == null) return (false, "Artifact not found.");
+            if (artifact.Status != "Pending Review") return (false, "Artifact is not in pending review state.");
+
+            artifact.Status = "Processing Blockchain";
+            await _repository.UpdateAsync(artifact);
+
             var currentArtifactId = artifact.ArtifactId.ToString();
-            var currentFileHash = fileHash;
+            var currentFileHash = artifact.FileHash;
+            var ownerId = artifact.OwnerId;
 
             _ = Task.Run(async () =>
             {
                 using var scope = _scopeFactory.CreateScope();
                 var bgRepository = scope.ServiceProvider.GetRequiredService<IArtifactRepository>();
                 var bgNotifier = scope.ServiceProvider.GetRequiredService<INotificationService>();
+                var bgBlockchain = scope.ServiceProvider.GetRequiredService<IBlockchainService>();
 
                 try
                 {
-                    string txHash = await _blockchainService.RegisterArtifactAsync(currentFileHash);
+                    string txHash = await bgBlockchain.RegisterArtifactAsync(currentFileHash);
 
                     var artifactToUpdate = await bgRepository.GetByIdAsync(Guid.Parse(currentArtifactId));
                     if (artifactToUpdate != null)
@@ -84,8 +98,8 @@ namespace SRN.Application.Services
                     }
 
                     await bgNotifier.SendSuccessAsync(
-                        userId,
-                        $"✅ 上链成功！TxHash: {txHash}",
+                        ownerId,
+                        $"✅ Your paper has been approved and registered! TxHash: {txHash}",
                         currentArtifactId
                     );
                 }
@@ -99,14 +113,14 @@ namespace SRN.Application.Services
                     }
 
                     await bgNotifier.SendFailureAsync(
-                        userId,
-                        $"❌ 上链失败：{ex.Message}",
+                        ownerId,
+                        $"❌ Blockchain registration failed: {ex.Message}",
                         currentArtifactId
                     );
                 }
             });
 
-            return (true, "Processing", artifact.ArtifactId, fileHash);
+            return (true, "Approval accepted. Blockchain registration is now processing.");
         }
 
         public async Task<(bool Registered, string Owner, DateTime? RegisteredAt)> VerifyArtifactAsync(string fileHash)
@@ -153,6 +167,21 @@ namespace SRN.Application.Services
                 a.UploadDate,
                 a.FileHash,
                 a.TxHash
+            });
+        }
+
+        public async Task<IEnumerable<object>> GetAllArtifactsForAdminAsync()
+        {
+            var artifacts = await _repository.GetAllAsync();
+            return artifacts.Select(a => new
+            {
+                a.ArtifactId,
+                a.Title,
+                a.Status,
+                a.UploadDate,
+                a.FileHash,
+                a.TxHash,
+                a.OwnerId
             });
         }
 

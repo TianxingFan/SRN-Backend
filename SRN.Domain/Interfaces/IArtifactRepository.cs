@@ -14,5 +14,6 @@ namespace SRN.Domain.Interfaces
         Task AddAsync(Artifact artifact);
         Task UpdateAsync(Artifact artifact);
         Task DeleteAsync(Artifact artifact);
+        Task<IEnumerable<Artifact>> GetAllAsync();
     }
 }

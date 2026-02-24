@@ -36,12 +36,12 @@ try
     if (blockchainProvider == "Real")
     {
         builder.Services.AddScoped<IBlockchainService, EthereumBlockchainService>();
-        Log.Information("--> Using REAL Ethereum Blockchain Service"); // 改用 Log
+        Log.Information("--> Using REAL Ethereum Blockchain Service");
     }
     else
     {
         builder.Services.AddScoped<IBlockchainService, MockBlockchainService>();
-        Log.Information("--> Using MOCK Blockchain Service (No Gas cost)"); // 改用 Log
+        Log.Information("--> Using MOCK Blockchain Service (No Gas cost)");
     }
 
     builder.Services.AddScoped<IArtifactRepository, ArtifactRepository>();
@@ -144,6 +144,37 @@ try
 
     app.MapControllers();
     app.MapHub<SRN.Infrastructure.Hubs.NotificationHub>("/notificationHub");
+
+    app.MapControllers();
+    app.MapHub<SRN.Infrastructure.Hubs.NotificationHub>("/notificationHub");
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        string[] roleNames = { "Admin", "Member" };
+        foreach (var roleName in roleNames)
+        {
+            if (!await roleManager.RoleExistsAsync(roleName).ConfigureAwait(false))
+            {
+                await roleManager.CreateAsync(new IdentityRole(roleName)).ConfigureAwait(false);
+            }
+        }
+
+        var adminEmail = "admin@srnlab.edu";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail).ConfigureAwait(false);
+        if (adminUser == null)
+        {
+            var newAdmin = new ApplicationUser { UserName = adminEmail, Email = adminEmail, WalletAddress = "0xAdmin" };
+            var result = await userManager.CreateAsync(newAdmin, "Admin@123456").ConfigureAwait(false);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(newAdmin, "Admin").ConfigureAwait(false);
+                Log.Information("--> Default Admin account created successfully.");
+            }
+        }
+    }
 
     app.Run();
 }

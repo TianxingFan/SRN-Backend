@@ -45,6 +45,11 @@ namespace SRN.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Artifact>> GetAllAsync()
+        {
+            return await _context.Artifacts.OrderByDescending(a => a.UploadDate).ToListAsync();
+        }
+
         public async Task AddAsync(Artifact artifact)
         {
             _context.Artifacts.Add(artifact);

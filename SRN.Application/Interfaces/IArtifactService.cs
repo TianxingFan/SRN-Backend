@@ -7,13 +7,12 @@ namespace SRN.Application.Interfaces
     {
         Task<(bool Success, string Message, Guid? ArtifactId, string? Hash)> UploadArtifactAsync(ArtifactUploadDto dto, string userId);
         Task<(bool Registered, string Owner, DateTime? RegisteredAt)> VerifyArtifactAsync(string fileHash);
-
         Task<Artifact?> GetArtifactForDownloadAsync(Guid id, string userId);
         Task<IEnumerable<object>> GetHistoryAsync(string userId);
-
         Task<IEnumerable<object>> GetPublicArtifactsAsync();
+        Task<IEnumerable<object>> GetAllArtifactsForAdminAsync();
         Task<Artifact?> GetPublicArtifactForDownloadAsync(Guid id);
-
         Task<bool> DeleteArtifactAsync(Guid id, string userId);
+        Task<(bool Success, string Message)> ApproveAndRegisterArtifactAsync(Guid artifactId);
     }
 }

@@ -101,6 +101,28 @@ namespace SRN.API.Controllers
             return Ok(new { message = "Artifact deleted successfully." });
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{id}/approve")]
+        public async Task<IActionResult> ApproveArtifact(Guid id)
+        {
+            var result = await _artifactService.ApproveAndRegisterArtifactAsync(id);
+
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            return Accepted(new { message = result.Message });
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllArtifactsForAdmin()
+        {
+            var allArtifacts = await _artifactService.GetAllArtifactsForAdminAsync();
+            return Ok(allArtifacts);
+        }
+
         [HttpGet("public")]
         public async Task<IActionResult> GetPublicArtifacts()
         {
