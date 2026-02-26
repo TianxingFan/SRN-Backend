@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +10,7 @@ using SRN.Infrastructure.Blockchain;
 using SRN.Infrastructure.Persistence;
 using SRN.Infrastructure.Repositories;
 using System.Text;
+using SRN.Application.Validators;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -89,9 +89,7 @@ try
 
     builder.Services.AddControllers();
 
-    builder.Services.AddFluentValidationAutoValidation()
-                    .AddFluentValidationClientsideAdapters();
-    builder.Services.AddValidatorsFromAssemblyContaining<SRN.Application.Validators.ArtifactUploadDtoValidator>();
+    builder.Services.AddValidatorsFromAssemblyContaining<ArtifactUploadDtoValidator>();
 
     builder.Services.AddSignalR();
     builder.Services.AddEndpointsApiExplorer();
