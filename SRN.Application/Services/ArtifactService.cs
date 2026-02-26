@@ -214,9 +214,12 @@ namespace SRN.Application.Services
             return null;
         }
 
-        public async Task<bool> DeleteArtifactAsync(Guid id, string userId)
+        public async Task<bool> DeleteArtifactAsync(Guid id, string userId, bool isAdmin = false)
         {
-            var artifact = await _repository.GetByIdAndOwnerAsync(id, userId);
+            var artifact = isAdmin
+                ? await _repository.GetByIdAsync(id)
+                : await _repository.GetByIdAndOwnerAsync(id, userId);
+
             if (artifact == null) return false;
 
             var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), artifact.FilePath);

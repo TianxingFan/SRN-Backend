@@ -96,7 +96,8 @@ namespace SRN.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return BadRequest("Invalid user ID.");
 
-            var success = await _artifactService.DeleteArtifactAsync(id, userId);
+            var isAdmin = User.IsInRole("Admin");
+            var success = await _artifactService.DeleteArtifactAsync(id, userId, isAdmin);
 
             if (!success) return NotFound(new { message = "Artifact not found or access denied." });
 

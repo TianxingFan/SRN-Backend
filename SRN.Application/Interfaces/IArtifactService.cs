@@ -12,7 +12,7 @@ namespace SRN.Application.Interfaces
         Task<IEnumerable<object>> GetPublicArtifactsAsync();
         Task<IEnumerable<object>> GetAllArtifactsForAdminAsync();
         Task<Artifact?> GetPublicArtifactForDownloadAsync(Guid id);
-        Task<bool> DeleteArtifactAsync(Guid id, string userId);
+        Task<bool> DeleteArtifactAsync(Guid id, string userId, bool isAdmin = false);
         Task<(bool Success, string Message)> ApproveAndRegisterArtifactAsync(Guid artifactId);
     }
 }
