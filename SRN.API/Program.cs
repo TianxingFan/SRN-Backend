@@ -143,11 +143,10 @@ try
     app.MapControllers();
     app.MapHub<SRN.Infrastructure.Hubs.NotificationHub>("/notificationHub");
 
-    app.MapControllers();
-    app.MapHub<SRN.Infrastructure.Hubs.NotificationHub>("/notificationHub");
-
-    using (var scope = app.Services.CreateScope())
+        using (var scope = app.Services.CreateScope())
     {
+        var db = scope.ServiceProvider.GetRequiredService<SRN.Infrastructure.Persistence.ApplicationDbContext>();
+        db.Database.Migrate();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
