@@ -59,7 +59,9 @@ namespace SRN.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return BadRequest("Invalid user ID.");
 
-            var artifact = await _artifactService.GetArtifactForDownloadAsync(id, userId);
+            var isAdmin = User.IsInRole("Admin");
+
+            var artifact = await _artifactService.GetArtifactForDownloadAsync(id, userId, isAdmin);
 
             if (artifact == null) return NotFound("Not found or access denied.");
 
@@ -68,7 +70,7 @@ namespace SRN.API.Controllers
             if (!System.IO.File.Exists(absolutePath)) return NotFound("File missing.");
 
             var memory = new MemoryStream();
-            using (var stream = new FileStream(absolutePath, FileMode.Open))
+            using (var stream = new FileStream(absolutePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 await stream.CopyToAsync(memory);
             }

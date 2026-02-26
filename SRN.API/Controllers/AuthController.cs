@@ -33,15 +33,13 @@ namespace SRN.API.Controllers
                 UserName = model.Email,
                 Email = model.Email,
                 WalletAddress = model.WalletAddress,
-                Role = "Researcher"  // 默认角色，可扩展
+                Role = "Member"
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
-                // 可选：自动添加角色，如果用 Identity Roles
-                // await _userManager.AddToRoleAsync(user, "Researcher");
-
+                await _userManager.AddToRoleAsync(user, "Member");
                 return Ok(new { message = "User registered successfully!" });
             }
 
@@ -57,7 +55,8 @@ namespace SRN.API.Controllers
                 return Unauthorized("Invalid login attempt.");
             }
 
-            var token = GenerateJwtToken(user);
+            var token = await GenerateJwtTokenAsync(user);
+
             return Ok(new
             {
                 token,
@@ -68,10 +67,9 @@ namespace SRN.API.Controllers
                     walletAddress = user.WalletAddress,
                     role = user.Role
                 }
-            });  // 返回更多用户 info，便于前端存
+            });
         }
 
-        // 新增：获取当前用户信息（用于前端验证登录状态）
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> GetMe()
@@ -91,26 +89,40 @@ namespace SRN.API.Controllers
             });
         }
 
-        private string GenerateJwtToken(ApplicationUser user)
+        private async Task<string> GenerateJwtTokenAsync(ApplicationUser user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key not configured."));
             var tokenHandler = new JwtSecurityTokenHandler();
+
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id ?? string.Empty),
+                new Claim(ClaimTypes.NameIdentifier, user.Id ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim("WalletAddress", user.WalletAddress ?? "")
+            };
+
+            var roles = await _userManager.GetRolesAsync(user);
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            if (!string.IsNullOrEmpty(user.Role) && !roles.Contains(user.Role))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, user.Role));
+            }
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? string.Empty),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id ?? string.Empty),
-                    new Claim("WalletAddress", user.WalletAddress ?? ""),
-                    new Claim(ClaimTypes.Role, user.Role ?? "")  // 新增：加 Role 到 token，便于授权
-                }),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["DurationInMinutes"] ?? "60")),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = jwtSettings["Issuer"],
                 Audience = jwtSettings["Audience"]
             };
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }

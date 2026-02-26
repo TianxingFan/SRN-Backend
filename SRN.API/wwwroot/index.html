@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRN Lab - Research Publications</title>
+    <title>Strategic Research Nexus (SRN)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <style>
         body {
             padding-top: 70px;
-            background-color: #f8f9fa;
-            color: #333;
+            background-color: #fcfcfc;
+            color: #2c3e50;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .upload-area {
@@ -18,51 +19,70 @@
             padding: 30px;
             text-align: center;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 4px;
             background-color: #fff;
             transition: 0.2s;
         }
 
             .upload-area:hover, .upload-area.dragover {
-                border-color: #0d6efd;
-                background-color: #f4f8ff;
+                border-color: #2c3e50;
+                background-color: #f8f9fa;
             }
 
         .hash-text {
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.8em;
-            color: #999;
+            color: #7f8c8d;
         }
 
         .team-photo {
-            width: 150px;
-            height: 150px;
+            width: 140px;
+            height: 140px;
             object-fit: cover;
             border-radius: 50%;
             margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .section-heading {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .section-subheading {
+            color: #7f8c8d;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            border-radius: 8px;
+            border: 1px solid #eaeaea;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm" style="background-color: #1a252f;">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#home">SRN Lab</a>
+            <a class="navbar-brand fw-bold" href="#home">SRN</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
                     <li class="nav-item"><a class="nav-link" href="#team">Our Team</a></li>
                     <li class="nav-item"><a class="nav-link" href="#papers">Publications</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
                     <li class="nav-item"><a class="nav-link" href="#verify">Verify</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
                     <li class="nav-item auth-required" style="display: none;"><a class="nav-link text-warning" href="#upload">Workspace</a></li>
+                    <li class="nav-item admin-only" style="display: none;"><a class="nav-link text-danger fw-bold" href="#admin">Admin Panel</a></li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item guest-only"><button class="btn btn-outline-light btn-sm mt-1" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button></li>
-                    <li class="nav-item guest-only"><button class="btn btn-primary btn-sm ms-2 mt-1" data-bs-toggle="modal" data-bs-target="#registerModal">Apply to Join</button></li>
+                    <li class="nav-item guest-only"><button class="btn btn-primary btn-sm ms-2 mt-1" data-bs-toggle="modal" data-bs-target="#registerModal">Sign Up</button></li>
                     <li class="nav-item auth-required" style="display: none;"><button class="btn btn-outline-danger btn-sm mt-1" onclick="logout()">Logout</button></li>
                 </ul>
             </div>
@@ -73,72 +93,84 @@
 
         <section id="home" class="mb-5">
             <div class="p-5 mb-4 bg-white rounded-3 shadow-sm border text-center">
-                <h1 class="display-5 fw-bold mb-3">Welcome to the SRN Research Lab</h1>
-                <p class="col-md-8 mx-auto fs-5 text-muted mb-4">
-                    We are dedicated to advancing research in distributed systems and computer science. Explore our latest publications and meet our research team.
+                <h1 class="display-5 fw-bold mb-3" style="color: #2c3e50;">Strategic Research Nexus</h1>
+                <p class="col-md-10 mx-auto fs-5 text-muted mb-4">
+                    An independent, non-partisan platform connecting Afghan researchers worldwide. We bridge academic divides to foster interdisciplinary collaboration and advance evidence-based policy solutions for Afghanistan's sustainable development.
                 </p>
-                <button class="btn btn-primary px-4" onclick="navigateTo('#papers')">View Publications</button>
+                <button class="btn btn-primary px-4 me-2" onclick="navigateTo('#about')">Learn More</button>
+                <button class="btn btn-outline-dark px-4" onclick="navigateTo('#papers')">Read Publications</button>
+            </div>
+        </section>
+
+        <section id="about" class="mb-5" style="display: none;">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <h3 class="section-heading">Our Mission & Vision</h3>
+                    <p class="text-muted">To advance knowledge production and develop evidence-based policies that empower Afghan scholars. We envision a sustainable, inclusive, and flourishing Afghan society underpinned by equitable development, informed public engagement, and accountable governance.</p>
+                    <p class="text-muted">We are committed to the principles of equity, intellectual rigor, and ethical scholarship, guiding strategic interventions for civil society and academic institutions globally.</p>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <h3 class="section-heading">Research Focus</h3>
+                    <ul class="list-group list-group-flush border-0">
+                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">E-Government & Digital Democracy:</strong> Enhancing public service delivery, transparency, and promoting civic engagement.</li>
+                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">Culture & Literature:</strong> Preserving and analyzing Afghanistan’s rich cultural heritage and its role in shaping national identity.</li>
+                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">Sustainable Governance:</strong> Frameworks ensuring effective, inclusive, and resilient governmental systems.</li>
+                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">Environmental Sustainability:</strong> Supporting responsible use of natural resources, climate change mitigation, and ecological balance.</li>
+                    </ul>
+                </div>
             </div>
         </section>
 
         <section id="team" class="mb-5" style="display: none;">
-            <div class="text-center mb-5">
-                <h2>Our Team</h2>
-                <p class="text-muted">Meet the researchers behind the SRN Lab.</p>
-            </div>
-            <div class="row text-center">
-                <div class="col-md-4 mb-4">
-                    <img src="https://via.placeholder.com/150/007bff/ffffff?text=Prof." alt="Professor" class="team-photo">
-                    <h5>Dr. John Doe</h5>
-                    <p class="text-muted small">Principal Investigator</p>
-                    <p class="small">Focuses on network security, consensus algorithms, and distributed systems architecture.</p>
+            <div class="text-center mb-5"><h2 class="section-heading">The SRN Team</h2><p class="section-subheading">A global network of dedicated academics and researchers.</p></div>
+            <div class="row">
+                <div class="col-md-4 mb-4 text-center">
+                    <img src="https://via.placeholder.com/150/34495e/ffffff?text=Dr.Saay" class="team-photo">
+                    <h5 class="fw-bold">Dr. Salim Saay</h5>
+                    <p class="text-muted small fw-bold">University of Limerick & Lero</p>
+                    <p class="small text-muted px-2 text-start">Assoc. Professor and Researcher. Former Director of IT at Afghanistan's Ministry of Higher Education. His research focuses on cross-border data integration, broker-based architectures, and AI.</p>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <img src="https://via.placeholder.com/150/28a745/ffffff?text=Alice" alt="Researcher 1" class="team-photo">
-                    <h5>Alice Smith</h5>
-                    <p class="text-muted small">Ph.D. Candidate</p>
-                    <p class="small">Researching cryptography and privacy-preserving smart contract protocols.</p>
+                <div class="col-md-4 mb-4 text-center">
+                    <img src="https://via.placeholder.com/150/34495e/ffffff?text=Dr.Mohibbi" class="team-photo">
+                    <h5 class="fw-bold">Dr. Abdul Aziz Mohibbi</h5>
+                    <p class="text-muted small fw-bold">Trinity College Dublin</p>
+                    <p class="small text-muted px-2 text-start">Agriculture & Environmental Engineer. Former Chancellor of Bamyan University. Focuses on co-design and community-based systems innovation for regional sustainability.</p>
                 </div>
-                <div class="col-md-4 mb-4">
-                    <img src="https://via.placeholder.com/150/17a2b8/ffffff?text=Bob" alt="Researcher 2" class="team-photo">
-                    <h5>Bob Johnson</h5>
-                    <p class="text-muted small">M.Sc. Student</p>
-                    <p class="small">Working on performance optimization and scalable blockchain frameworks.</p>
+                <div class="col-md-4 mb-4 text-center">
+                    <img src="https://via.placeholder.com/150/34495e/ffffff?text=Dr.Asadullahi" class="team-photo">
+                    <h5 class="fw-bold">Dr. Ahmad Farid Asadullahi</h5>
+                    <p class="text-muted small fw-bold">Haverford College</p>
+                    <p class="small text-muted px-2 text-start">Assistant Professor holding a Ph.D. in Persian Literature. Actively involved in civil society and human rights advocacy, with extensive academic experience across multiple institutions.</p>
                 </div>
             </div>
         </section>
 
         <section id="papers" class="mb-5" style="display: none;">
-            <h2 class="mb-2">Publications</h2>
-            <p class="text-muted mb-4">Download our latest research papers. Authenticity can be cryptographically verified using our verification tool.</p>
-            <div class="row" id="publicPapersList">
-                <div class="text-center mt-4"><div class="spinner-border text-secondary" role="status"></div><p>Loading publications...</p></div>
-            </div>
+            <h2 class="section-heading mb-2">Publications</h2>
+            <p class="text-muted mb-4">Open-access research, policy briefs, and reports supporting Afghanistan's socio-economic resilience.</p>
+            <div class="row" id="publicPapersList"><div class="text-center mt-4"><div class="spinner-border text-secondary" role="status"></div></div></div>
         </section>
 
-        <section id="contact" class="mb-5" style="display: none;">
-            <div class="card shadow-sm col-md-8 mx-auto">
-                <div class="card-body p-5 text-center">
-                    <h2 class="mb-3">Contact Us</h2>
-                    <p class="text-muted mb-4">For academic inquiries, collaboration opportunities, or general questions, please reach out to us via email.</p>
-                    <h5>📧 official@srnlab.edu</h5>
-                    <p class="mt-4 small text-muted">Or apply to join our lab by clicking "Apply to Join" in the top right corner.</p>
+        <section id="verify" class="mb-5" style="display: none;">
+            <div class="card shadow-sm border col-md-8 mx-auto">
+                <div class="card-body p-5">
+                    <h4 class="mb-3 text-center section-heading">Cryptographic Verification</h4>
+                    <p class="text-muted text-center small mb-4">To maintain transparent research practices, SRN publications are immutably recorded upon approval. Enter the SHA-256 hash of any downloaded SRN document to verify its provenance and publication timestamp.</p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="hashInput" class="form-control bg-light" placeholder="Document Hash (e.g., 8a1f...)">
+                        <button class="btn btn-dark" onclick="verifyHash()">Verify Integrity</button>
+                    </div>
+                    <div id="verifyResult" class="mt-3 text-center"></div>
                 </div>
             </div>
         </section>
 
-        <section id="verify" class="mb-5" style="display: none;">
-            <div class="card shadow-sm border-0 bg-light col-md-8 mx-auto">
-                <div class="card-body p-4">
-                    <h4 class="mb-3 text-center">🔍 Document Authenticity Verification</h4>
-                    <p class="text-muted text-center small mb-4">
-                        To guarantee academic integrity, all SRN Lab publications are anchored to a blockchain. Enter the SHA-256 hash of any downloaded PDF to verify its origin.
-                    </p>
-                    <div class="input-group mb-3">
-                        <input type="text" id="hashInput" class="form-control" placeholder="Enter file hash (e.g., 8a1f...)" aria-label="Hash">
-                        <button class="btn btn-secondary" onclick="verifyHash()">Verify</button>
-                    </div>
-                    <div id="verifyResult" class="mt-3 text-center"></div>
+        <section id="contact" class="mb-5" style="display: none;">
+            <div class="card shadow-sm border col-md-8 mx-auto">
+                <div class="card-body p-5 text-center">
+                    <h2 class="section-heading mb-3">Contact Us</h2>
+                    <p class="text-muted mb-4">For academic inquiries, research collaboration, or policy discussions, please contact the coordinating team.</p>
+                    <h5 class="fw-bold" style="color: #2c3e50;">📧 stratigic.info@gmail.com</h5>
                 </div>
             </div>
         </section>
@@ -146,30 +178,36 @@
         <section id="upload" class="mb-5" style="display: none;">
             <div class="row">
                 <div class="col-md-4">
-                    <div class="card shadow-sm mb-4">
+                    <div class="card shadow-sm mb-4 border">
                         <div class="card-body">
-                            <h5 class="card-title mb-4">Submit New Paper</h5>
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold">Paper Title</label>
-                                <input type="text" id="titleInput" class="form-control form-control-sm" placeholder="Title">
-                            </div>
-                            <div class="upload-area mb-3" id="uploadArea">
-                                <p id="uploadText" class="text-muted mb-0 small">📄 Click or Drag PDF Here</p>
-                                <input type="file" id="fileInput" style="display: none;" accept="application/pdf">
-                            </div>
-                            <button class="btn btn-dark w-100 btn-sm" onclick="uploadFile()">Submit & Anchor</button>
+                            <h5 class="card-title mb-4 fw-bold">Upload Document</h5>
+                            <div class="mb-3"><label class="form-label small fw-bold">Title</label><input type="text" id="titleInput" class="form-control form-control-sm" placeholder="Title"></div>
+                            <div class="upload-area mb-3" id="uploadArea"><p id="uploadText" class="text-muted mb-0 small">📄 Select PDF Document</p><input type="file" id="fileInput" style="display: none;" accept="application/pdf"></div>
+                            <button class="btn btn-dark w-100 btn-sm" onclick="uploadFile()">Upload</button>
                             <div id="uploadStatus" class="mt-3 small"></div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-8">
-                    <div class="card shadow-sm">
+                    <div class="card shadow-sm border">
                         <div class="card-body">
-                            <h5 class="card-title mb-3">My Submissions</h5>
-                            <ul id="historyList" class="list-group list-group-flush">
-                                <li class="list-group-item text-muted text-center py-4">No submissions yet.</li>
-                            </ul>
+                            <h5 class="card-title mb-3 fw-bold">My Uploads</h5>
+                            <ul id="historyList" class="list-group list-group-flush"><li class="list-group-item text-muted text-center py-4">No uploads found.</li></ul>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="admin" class="mb-5" style="display: none;">
+            <h2 class="section-heading mb-3">Admin Panel</h2>
+            <div class="card shadow-sm border">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="ps-3">Document</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                            <tbody id="adminArtifactsList"><tr><td colspan="4" class="text-center py-4 text-muted">Loading...</td></tr></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -179,24 +217,20 @@
 
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="liveToast" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body small" id="toastMessage"></div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
+            <div class="d-flex"><div class="toast-body small" id="toastMessage"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
         </div>
     </div>
 
     <div class="modal fade" id="loginModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-header bg-light">
-                    <h6 class="modal-title">Lab Member Login</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="email" id="loginEmail" class="form-control form-control-sm mb-3" placeholder="Email">
-                    <input type="password" id="loginPassword" class="form-control form-control-sm mb-3" placeholder="Password">
-                    <button class="btn btn-dark btn-sm w-100" onclick="loginUser()">Login</button>
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light border-0"><h6 class="modal-title fw-bold">Researcher Sign In</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-4">
+                    <form onsubmit="event.preventDefault(); loginUser();">
+                        <input type="email" id="loginEmail" class="form-control form-control-sm mb-3" placeholder="Email Address" required>
+                        <input type="password" id="loginPassword" class="form-control form-control-sm mb-3" placeholder="Password" required>
+                        <button type="submit" class="btn btn-dark btn-sm w-100">Sign In</button>
+                    </form>
                     <div id="loginStatus" class="text-danger mt-2 small text-center"></div>
                 </div>
             </div>
@@ -205,15 +239,14 @@
 
     <div class="modal fade" id="registerModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-header bg-light">
-                    <h6 class="modal-title">Apply for Lab Access</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="email" id="registerEmail" class="form-control form-control-sm mb-3" placeholder="Academic Email">
-                    <input type="password" id="registerPassword" class="form-control form-control-sm mb-3" placeholder="Password (Min 6 chars)">
-                    <button class="btn btn-primary btn-sm w-100" onclick="registerUser()">Submit Application</button>
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light border-0"><h6 class="modal-title fw-bold">Join SRN Network</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-4">
+                    <form onsubmit="event.preventDefault(); registerUser();">
+                        <input type="email" id="registerEmail" class="form-control form-control-sm mb-3" placeholder="Email" required>
+                        <input type="password" id="registerPassword" class="form-control form-control-sm mb-3" placeholder="Password (Min 6 chars)" required>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Sign Up</button>
+                    </form>
                     <div id="registerStatus" class="text-danger mt-2 small text-center"></div>
                 </div>
             </div>
@@ -225,53 +258,84 @@
         const baseUrl = '';
         let connection = null;
 
+        function parseJwt(token) {
+            try { return JSON.parse(decodeURIComponent(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))); } catch (e) { return null; }
+        }
+
+        function isAdmin() {
+            const token = localStorage.getItem('token');
+            if (!token) return false;
+            const decoded = parseJwt(token);
+            if (!decoded) return false;
+            const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
+            return Array.isArray(role) ? role.includes("Admin") : role === "Admin";
+        }
+
         function navigateTo(section) {
             document.querySelectorAll('section').forEach(s => s.style.display = 'none');
             const target = document.querySelector(section);
             if (target) target.style.display = 'block';
-
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             const activeLink = document.querySelector(`a[href="${section}"]`);
             if (activeLink) activeLink.classList.add('active');
-
             if (section === '#papers') fetchPublicPapers();
             if (section === '#upload') renderHistory();
+            if (section === '#admin') fetchAdminArtifacts();
+            window.scrollTo(0, 0);
+        }
+
+        function updateUIState() {
+            const isLoggedIn = !!localStorage.getItem('token');
+            const isUserAdmin = isAdmin();
+            document.querySelectorAll('.guest-only').forEach(el => el.style.display = isLoggedIn ? 'none' : 'block');
+            document.querySelectorAll('.auth-required').forEach(el => el.style.display = isLoggedIn ? 'block' : 'none');
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = isUserAdmin ? 'block' : 'none');
+        }
+
+        async function fetchAdminArtifacts() {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/all`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error('Failed to load data');
+                const artifacts = await res.json();
+                const tbody = document.getElementById('adminArtifactsList');
+                tbody.innerHTML = artifacts.length === 0 ? '<tr><td colspan="4" class="text-center py-4 text-muted">No submissions.</td></tr>' : '';
+
+                artifacts.forEach(a => {
+                    let actionHtml = ''; let statusColor = 'secondary';
+                    if (a.status === 'Pending Review') {
+                        statusColor = 'warning text-dark'; actionHtml = `<button class="btn btn-sm btn-dark" onclick="approveArtifact('${a.artifactId}')">Approve & Publish</button>`;
+                    } else if (a.status === 'Processing Blockchain') {
+                        statusColor = 'info text-dark'; actionHtml = `<span class="badge bg-light text-dark border">Anchoring...</span>`;
+                    } else if (a.status === 'Registered') {
+                        statusColor = 'success'; actionHtml = `<span class="text-success small fw-bold">✓ Published</span>`;
+                    }
+                    tbody.innerHTML += `<tr><td class="ps-3"><strong>${a.title}</strong><br><small class="hash-text">Ref: ${a.fileHash.substring(0, 16)}...</small></td><td><span class="badge bg-${statusColor}">${a.status}</span></td><td><small class="text-muted">${new Date(a.uploadDate).toLocaleDateString()}</small></td><td><button class="btn btn-sm btn-outline-secondary me-2" onclick="downloadPrivateArtifact('${a.artifactId}')">Review PDF</button>${actionHtml}</td></tr>`;
+                });
+            } catch (err) { showToast('Error: ' + err.message); }
+        }
+
+        async function approveArtifact(id) {
+            if (!confirm("Approve and publish this document?")) return;
+            const token = localStorage.getItem('token');
+            showToast("Processing approval...");
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/${id}/approve`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error(await res.text());
+                fetchAdminArtifacts();
+            } catch (err) { showToast(`❌ Error: ${err.message}`); }
         }
 
         async function fetchPublicPapers() {
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/public`);
-                if (!res.ok) throw new Error('Network error');
                 const papers = await res.json();
                 const container = document.getElementById('publicPapersList');
-                container.innerHTML = '';
-
-                if (papers.length === 0) {
-                    container.innerHTML = '<div class="col-12"><div class="alert alert-light border text-center">No publications available yet.</div></div>';
-                    return;
-                }
-
+                container.innerHTML = papers.length === 0 ? '<div class="col-12"><div class="alert bg-white border text-center text-muted">No publications available at this time.</div></div>' : '';
                 papers.forEach(p => {
-                    container.innerHTML += `
-                            <div class="col-12 mb-3">
-                                <div class="card border shadow-sm">
-                                    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                        <div style="flex: 1; min-width: 250px;">
-                                            <h5 class="mb-1">${p.title}</h5>
-                                            <p class="text-muted small mb-1">Published: ${new Date(p.uploadDate).toLocaleDateString()}</p>
-                                            <span class="hash-text">Hash: ${p.fileHash}</span>
-                                        </div>
-                                        <div>
-                                            <button class="btn btn-outline-dark btn-sm" onclick="downloadPublicArtifact('${p.artifactId}')">⬇️ Download PDF</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                    container.innerHTML += `<div class="col-12 mb-3"><div class="card shadow-sm"><div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3"><div style="flex: 1; min-width: 250px;"><h5 class="mb-1" style="color:#2c3e50;">${p.title}</h5><p class="text-muted small mb-1">Published: ${new Date(p.uploadDate).toLocaleDateString()}</p><span class="hash-text">Hash: ${p.fileHash}</span></div><button class="btn btn-outline-dark btn-sm px-4" onclick="downloadPublicArtifact('${p.artifactId}')">Download</button></div></div></div>`;
                 });
-            } catch (err) {
-                document.getElementById('publicPapersList').innerHTML = `<div class="text-danger">Failed to load papers.</div>`;
-            }
+            } catch (err) { document.getElementById('publicPapersList').innerHTML = `<div class="text-danger">Failed to load publications.</div>`; }
         }
 
         async function downloadPublicArtifact(id) {
@@ -280,167 +344,110 @@
                 if (!res.ok) throw new Error('File not found');
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Paper_${id.substring(0, 8)}.pdf`;
-                a.click();
-                URL.revokeObjectURL(url);
-            } catch (err) {
-                showToast(`Download failed: ${err.message}`);
-            }
-        }
-
-        async function uploadFile() {
-            const token = localStorage.getItem('token');
-            const title = document.getElementById('titleInput').value;
-            const file = document.getElementById('fileInput').files[0];
-
-            if (!title || !file) return showToast('Provide a title and PDF.');
-
-            const formData = new FormData();
-            formData.append('File', file);
-            formData.append('Title', title);
-
-            document.getElementById('uploadStatus').innerHTML = '<span class="text-info">Processing...</span>';
-
-            try {
-                const res = await fetch(`${baseUrl}/api/artifacts/upload`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData
-                });
-                if (!res.ok) throw new Error(await res.text());
-
-                document.getElementById('uploadStatus').innerHTML = '<span class="text-success">✅ Submitted.</span>';
-                document.getElementById('titleInput').value = '';
-                document.getElementById('uploadText').textContent = '📄 Click or Drag PDF Here';
-                renderHistory();
-            } catch (err) {
-                document.getElementById('uploadStatus').innerHTML = `<span class="text-danger">Failed: ${err.message}</span>`;
-            }
-        }
-
-        async function renderHistory() {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-
-            try {
-                const res = await fetch(`${baseUrl}/api/artifacts/history`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const history = await res.json();
-                const list = document.getElementById('historyList');
-                list.innerHTML = '';
-
-                if (history.length === 0) {
-                    list.innerHTML = '<li class="list-group-item text-muted text-center py-4">No submissions yet.</li>';
-                    return;
-                }
-
-                history.forEach(h => {
-                    const statusColor = h.status === 'Registered' ? 'success' : (h.status === 'Failed' ? 'danger' : 'warning');
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center py-3';
-                    li.innerHTML = `
-                            <div>
-                                <strong class="d-block">${h.title}</strong>
-                                <span class="badge bg-${statusColor} mt-1">${h.status}</span>
-                            </div>
-                            <div>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="downloadPrivateArtifact('${h.artifactId}')">PDF</button>
-                                <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteArtifact('${h.artifactId}')">Delete</button>
-                            </div>
-                        `;
-                    list.appendChild(li);
-                });
-            } catch (err) {
-                console.error('History fetch failed', err);
-            }
-        }
-
-        async function downloadPrivateArtifact(id) {
-            const token = localStorage.getItem('token');
-            try {
-                const res = await fetch(`${baseUrl}/api/artifacts/download/${id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) throw new Error('Download failed');
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Private_Artifact.pdf`;
-                a.click();
-            } catch (err) { showToast(err.message); }
-        }
-
-        async function deleteArtifact(id) {
-            if (!confirm('Are you sure you want to delete this paper?')) return;
-            const token = localStorage.getItem('token');
-            try {
-                const res = await fetch(`${baseUrl}/api/artifacts/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) throw new Error('Delete failed');
-                renderHistory();
+                const a = document.createElement('a'); a.href = url; a.download = `SRN_Publication.pdf`; a.click();
             } catch (err) { showToast(err.message); }
         }
 
         async function verifyHash() {
             const hash = document.getElementById('hashInput').value.trim();
-            if (!hash) return showToast('Please enter a hash.');
-
-            document.getElementById('verifyResult').innerHTML = '<span class="text-secondary">Querying registry...</span>';
-
+            if (!hash) return showToast('Please enter a document hash.');
+            document.getElementById('verifyResult').innerHTML = '<span class="text-secondary small">Verifying...</span>';
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/verify/${hash}`);
                 if (!res.ok) throw new Error('Not found');
                 const data = await res.json();
+                document.getElementById('verifyResult').innerHTML = `<div class="alert bg-white border text-success text-start small mb-0"><strong>✓ Authentic Record Verified</strong><br><span class="text-muted">Registered Timestamp: ${new Date(data.details.registeredAt).toLocaleString()}</span></div>`;
+            } catch (err) { document.getElementById('verifyResult').innerHTML = `<div class="alert bg-white border text-danger small mb-0">❌ Record not found in the SRN registry.</div>`; }
+        }
 
-                document.getElementById('verifyResult').innerHTML = `
-                        <div class="alert alert-success text-start small mb-0">
-                            <strong>✅ Authentic Record</strong><br>
-                            Timestamp: ${new Date(data.details.registeredAt).toLocaleString()}
-                        </div>`;
-            } catch (err) {
-                document.getElementById('verifyResult').innerHTML = `
-                        <div class="alert alert-danger small mb-0">❌ Record not found in the registry.</div>`;
-            }
+        async function uploadFile() {
+            const token = localStorage.getItem('token');
+            const title = document.getElementById('titleInput').value.trim();
+            const file = document.getElementById('fileInput').files[0];
+
+            if (!title) return showToast('Please enter a Title.');
+            if (!file) return showToast('Please select a PDF document.');
+
+            const formData = new FormData(); formData.append('File', file); formData.append('Title', title);
+            document.getElementById('uploadStatus').innerHTML = '<span class="text-secondary small">Uploading...</span>';
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/upload`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
+                if (!res.ok) throw new Error(await res.text());
+                document.getElementById('uploadStatus').innerHTML = '<span class="text-success small fw-bold">✓ Uploaded successfully.</span>';
+                document.getElementById('titleInput').value = ''; document.getElementById('uploadText').textContent = '📄 Select PDF Document';
+                document.getElementById('fileInput').value = '';
+                renderHistory();
+            } catch (err) { document.getElementById('uploadStatus').innerHTML = `<span class="text-danger small">Failed: ${err.message}</span>`; }
+        }
+
+        async function renderHistory() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/history`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const history = await res.json();
+                const list = document.getElementById('historyList');
+                list.innerHTML = history.length === 0 ? '<li class="list-group-item text-muted text-center py-4 border-0">No uploads found.</li>' : '';
+                history.forEach(h => {
+                    const statusColor = h.status === 'Registered' ? 'success' : (h.status.includes('Pending') ? 'warning text-dark' : 'danger');
+                    list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center py-3"><div><strong class="d-block" style="color:#2c3e50;">${h.title}</strong><span class="badge bg-${statusColor} mt-1">${h.status}</span></div><div><button class="btn btn-sm btn-outline-secondary" onclick="downloadPrivateArtifact('${h.artifactId}')">PDF</button><button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteArtifact('${h.artifactId}')">Delete</button></div></li>`;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        async function downloadPrivateArtifact(id) {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${baseUrl}/api/artifacts/download/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error('Download failed');
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = `SRN_Document.pdf`; a.click();
+            } catch (err) { showToast(err.message); }
+        }
+
+        async function deleteArtifact(id) {
+            if (!confirm('Delete this upload?')) return;
+            const token = localStorage.getItem('token');
+            try {
+                await fetch(`${baseUrl}/api/artifacts/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                renderHistory();
+            } catch (err) { showToast(err.message); }
         }
 
         async function loginUser() {
-            const email = document.getElementById('loginEmail').value;
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             try {
-                const res = await fetch(`${baseUrl}/api/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                if (!res.ok) throw new Error('Invalid credentials');
+                const res = await fetch(`${baseUrl}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+                if (!res.ok) throw new Error('Invalid email or password');
                 const data = await res.json();
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userId', data.user.id);
                 bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
                 updateUIState();
                 connection = connectSignalR();
-                navigateTo('#upload');
+                navigateTo(isAdmin() ? '#admin' : '#upload');
             } catch (err) { document.getElementById('loginStatus').textContent = err.message; }
         }
 
         async function registerUser() {
-            const email = document.getElementById('registerEmail').value;
+            const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
             try {
-                const res = await fetch(`${baseUrl}/api/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, walletAddress: "" })
-                });
-                if (!res.ok) throw new Error("Format error or email exists.");
+                const res = await fetch(`${baseUrl}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, walletAddress: "" }) });
+                if (!res.ok) {
+                    const errText = await res.text();
+                    let errMsg = errText;
+                    try {
+                        const parsed = JSON.parse(errText);
+                        errMsg = parsed[0]?.description || parsed.message || errText;
+                    } catch (e) { }
+                    throw new Error(errMsg);
+                }
                 bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
-                showToast('Application sent! Please login.');
+                showToast('Sign up successful! You may now login.');
+                document.getElementById('registerStatus').textContent = '';
             } catch (err) { document.getElementById('registerStatus').textContent = err.message; }
         }
 
@@ -451,12 +458,6 @@
             navigateTo('#home');
         }
 
-        function updateUIState() {
-            const isLoggedIn = !!localStorage.getItem('token');
-            document.querySelectorAll('.guest-only').forEach(el => el.style.display = isLoggedIn ? 'none' : 'block');
-            document.querySelectorAll('.auth-required').forEach(el => el.style.display = isLoggedIn ? 'block' : 'none');
-        }
-
         function connectSignalR() {
             const userId = localStorage.getItem('userId');
             if (!userId) return null;
@@ -464,6 +465,7 @@
             conn.on("ReceiveMessage", (sender, message, artifactId) => {
                 showToast(message);
                 if (document.querySelector('#upload').style.display === 'block') renderHistory();
+                if (document.querySelector('#admin').style.display === 'block') fetchAdminArtifacts();
             });
             conn.start().catch(err => console.error(err));
             return conn;
@@ -480,26 +482,30 @@
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) document.getElementById('uploadText').textContent = fileInput.files[0].name;
         });
-        uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
         uploadArea.addEventListener('drop', e => {
-            e.preventDefault(); uploadArea.classList.remove('dragover');
-            fileInput.files = e.dataTransfer.files;
-            if (fileInput.files.length > 0) document.getElementById('uploadText').textContent = fileInput.files[0].name;
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                document.getElementById('uploadText').textContent = fileInput.files[0].name;
+            } else {
+                showToast("File drop failed. Please click to select the PDF instead.");
+            }
         });
 
         window.onload = () => {
             updateUIState();
             navigateTo('#home');
-            if (localStorage.getItem('token')) {
-                connection = connectSignalR();
-            }
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', e => {
-                    e.preventDefault();
-                    navigateTo(link.getAttribute('href'));
-                });
-            });
+            if (localStorage.getItem('token')) { connection = connectSignalR(); }
+            document.querySelectorAll('.nav-link').forEach(link => { link.addEventListener('click', e => { e.preventDefault(); navigateTo(link.getAttribute('href')); }); });
         };
     </script>
 </body>

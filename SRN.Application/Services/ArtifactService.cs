@@ -52,17 +52,25 @@ namespace SRN.Application.Services
             var artifact = new Artifact
             {
                 ArtifactId = Guid.NewGuid(),
-                Title = dto.Title,
+                Title = dto.Title ?? "Untitled",
                 FileHash = fileHash,
                 FilePath = filePath,
                 UploadDate = DateTime.UtcNow,
                 Status = "Pending Review",
-                OwnerId = userId
+                OwnerId = userId,
+                TxHash = ""
             };
 
-            await _repository.AddAsync(artifact);
-
-            return (true, "Artifact uploaded and pending admin review", artifact.ArtifactId, fileHash);
+            try
+            {
+                await _repository.AddAsync(artifact);
+                return (true, "Artifact uploaded and pending admin review", artifact.ArtifactId, fileHash);
+            }
+            catch (Exception ex)
+            {
+                var innerMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return (false, $"Database save failed: {innerMsg}", null, null);
+            }
         }
 
         public async Task<(bool Success, string Message)> ApproveAndRegisterArtifactAsync(Guid artifactId)
@@ -139,6 +147,15 @@ namespace SRN.Application.Services
 
         public async Task<Artifact?> GetArtifactForDownloadAsync(Guid id, string userId)
         {
+            return await _repository.GetByIdAndOwnerAsync(id, userId);
+        }
+
+        public async Task<Artifact?> GetArtifactForDownloadAsync(Guid id, string userId, bool isAdmin = false)
+        {
+            if (isAdmin)
+            {
+                return await _repository.GetByIdAsync(id);
+            }
             return await _repository.GetByIdAndOwnerAsync(id, userId);
         }
 
