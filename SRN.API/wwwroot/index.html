@@ -173,46 +173,34 @@
                 <p class="section-subheading">A global network of dedicated academics and researchers.</p>
             </div>
             <div class="row">
-
                 <div class="col-md-4 mb-4 text-center">
                     <img src="images/salim.jpg" alt="Photo of Dr. Salim Saay" class="team-photo">
                     <h5 class="fw-bold" style="color:#2c3e50;">Dr. Salim Saay</h5>
                     <p class="text-muted small fw-bold">University of Limerick & Lero</p>
-                    <p class="small text-muted px-2 text-start">
-                        Associate Professor and Researcher holding a Ph.D. in Software Engineering. Former faculty at Kabul University and IT leader in Afghan higher education. His research focuses on cross-border data integration, broker-based architectures, blockchain, and AI.
-                    </p>
+                    <p class="small text-muted px-2 text-start">Associate Professor and Researcher holding a Ph.D. in Software Engineering. Former faculty at Kabul University and IT leader in Afghan higher education. His research focuses on cross-border data integration, broker-based architectures, blockchain, and AI.</p>
                 </div>
-
                 <div class="col-md-4 mb-4 text-center">
                     <img src="images/abdul.jpg" alt="Photo of Dr. Abdul Aziz Mohibbi" class="team-photo">
                     <h5 class="fw-bold" style="color:#2c3e50;">Dr. Abdul Aziz Mohibbi</h5>
                     <p class="text-muted small fw-bold">Trinity College Dublin & Maynooth University</p>
-                    <p class="small text-muted px-2 text-start">
-                        Agriculture & Environmental Engineer. Former Chancellor of Bamyan University and Deputy Dean at Kabul University, championing inclusive academic initiatives. His research focuses on environmental changes, co-design, and community-based systems innovation for regional sustainability.
-                    </p>
+                    <p class="small text-muted px-2 text-start">Agriculture & Environmental Engineer. Former Chancellor of Bamyan University and Deputy Dean at Kabul University, championing inclusive academic initiatives. His research focuses on environmental changes, co-design, and community-based systems innovation for regional sustainability.</p>
                 </div>
-
                 <div class="col-md-4 mb-4 text-center">
                     <img src="images/ahmad.jpg" alt="Photo of Dr. Ahmad Farid Asadullahi" class="team-photo">
                     <h5 class="fw-bold" style="color:#2c3e50;">Dr. Ahmad Farid Asadullahi</h5>
                     <p class="text-muted small fw-bold">Haverford College</p>
-                    <p class="small text-muted px-2 text-start">
-                        Assistant Professor holding a Ph.D. in Persian Literature. With extensive teaching experience at Kabul and Ghazni Universities, he actively supports Afghan community development and cultural preservation through various non-governmental organizations.
-                    </p>
+                    <p class="small text-muted px-2 text-start">Assistant Professor holding a Ph.D. in Persian Literature. With extensive teaching experience at Kabul and Ghazni Universities, he actively supports Afghan community development and cultural preservation through various non-governmental organizations.</p>
                 </div>
-
             </div>
         </section>
 
         <section id="papers" class="mb-5" style="display: none;">
             <h2 class="section-heading mb-2">Publications</h2>
             <p class="text-muted mb-4">Open-access research, academic papers, and technical reports supporting socio-economic resilience.</p>
-
             <div class="input-group mb-4 shadow-sm">
                 <span class="input-group-text bg-white border-end-0 text-muted">🔍</span>
                 <input type="text" id="searchInput" class="form-control border-start-0 py-2" placeholder="Search publications by title..." onkeyup="filterPublications()">
             </div>
-
             <div class="row" id="publicPapersList">
                 <div class="text-center mt-4"><div class="spinner-border text-secondary" role="status"></div></div>
             </div>
@@ -328,6 +316,22 @@
         const baseUrl = '';
         let connection = null;
 
+        function translateBackendError(errMsg) {
+            if (!errMsg) return "An unexpected error occurred. Please try again.";
+            let msg = errMsg;
+
+            msg = msg.replace(/The field Password must be a string or array type with a minimum length of '\d+'\./g, "Password must be at least 6 characters long.");
+            msg = msg.replace(/Passwords must have at least one non alphanumeric character.*/g, "Password must contain at least one special symbol (e.g., @, #, !).");
+            msg = msg.replace(/Passwords must have at least one digit.*/g, "Password must contain at least one number.");
+            msg = msg.replace(/Passwords must have at least one uppercase.*/g, "Password must contain at least one uppercase letter (A-Z).");
+            msg = msg.replace(/Passwords must have at least one lowercase.*/g, "Password must contain at least one lowercase letter (a-z).");
+            msg = msg.replace(/The Email field is not a valid.*/gi, "Please enter a valid email address format.");
+            msg = msg.replace(/User name '.*' is invalid.*/gi, "Invalid email address format.");
+            msg = msg.replace(/Email '.*' is already taken\./gi, "This email is already registered. Please Log In.");
+
+            return msg;
+        }
+
         function parseJwt(token) {
             try { return JSON.parse(decodeURIComponent(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))); } catch (e) { return null; }
         }
@@ -351,8 +355,15 @@
             const activeLink = document.querySelector(`.nav-link[href="${section}"]`);
             if (activeLink) activeLink.classList.add('active');
 
+            if (section === '#upload') {
+                document.getElementById('uploadStatus').innerHTML = '';
+                document.getElementById('titleInput').value = '';
+                document.getElementById('fileInput').value = '';
+                document.getElementById('uploadText').textContent = '📄 Select PDF Document';
+                renderHistory();
+            }
+
             if (section === '#papers') fetchPublicPapers();
-            if (section === '#upload') renderHistory();
             if (section === '#admin') fetchAdminArtifacts();
             window.scrollTo(0, 0);
         }
@@ -374,17 +385,26 @@
                 const tbody = document.getElementById('adminArtifactsList');
                 tbody.innerHTML = artifacts.length === 0 ? '<tr><td colspan="4" class="text-center py-4 text-muted">No submissions.</td></tr>' : '';
 
+                let isAnyProcessing = false;
+
                 artifacts.forEach(a => {
                     let actionHtml = ''; let statusColor = 'secondary';
                     if (a.status === 'Pending Review') {
                         statusColor = 'warning text-dark'; actionHtml = `<button class="btn btn-sm btn-dark" onclick="approveArtifact('${a.artifactId}')">Approve & Publish</button>`;
                     } else if (a.status === 'Processing Blockchain') {
                         statusColor = 'info text-dark'; actionHtml = `<span class="badge bg-light text-dark border">Anchoring...</span>`;
+                        isAnyProcessing = true;
                     } else if (a.status === 'Registered') {
                         statusColor = 'success'; actionHtml = `<span class="text-success small fw-bold">✓ Published</span>`;
                     }
+
+                    actionHtml += `<button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteArtifact('${a.artifactId}')">Delete</button>`;
                     tbody.innerHTML += `<tr><td class="ps-3"><strong>${a.title}</strong><br><small class="hash-text">Ref: ${a.fileHash.substring(0, 16)}...</small></td><td><span class="badge bg-${statusColor}">${a.status}</span></td><td><small class="text-muted">${new Date(a.uploadDate).toLocaleDateString()}</small></td><td><button class="btn btn-sm btn-outline-secondary me-2" onclick="downloadPrivateArtifact('${a.artifactId}')">Review PDF</button>${actionHtml}</td></tr>`;
                 });
+
+                if (isAnyProcessing && document.querySelector('#admin').style.display === 'block') {
+                    setTimeout(fetchAdminArtifacts, 3000);
+                }
             } catch (err) { showToast('Error: ' + err.message); }
         }
 
@@ -407,28 +427,28 @@
                 container.innerHTML = papers.length === 0 ? '<div class="col-12"><div class="alert bg-white border text-center text-muted">No publications available at this time.</div></div>' : '';
                 papers.forEach(p => {
                     container.innerHTML += `
-                                    <div class="col-12 mb-3 paper-card-container">
-                                        <div class="card shadow-sm border-0 paper-card border">
-                                            <div class="card-body d-flex align-items-center flex-wrap gap-3">
-                                                <div class="pdf-thumbnail"></div>
-                                                <div style="flex: 1; min-width: 250px;">
-                                                    <h5 class="mb-1 fw-bold paper-title" style="color:#2c3e50;">${p.title}</h5>
-                                                    <p class="text-muted small mb-2">
-                                                        <span class="badge bg-light text-dark border me-2">Date: ${new Date(p.uploadDate).toLocaleDateString()}</span>
-                                                        <span class="badge bg-light text-dark border">Status: Published</span>
-                                                    </p>
-                                                    <div class="hash-text bg-light p-2 rounded border-start border-4 border-secondary d-inline-block">
-                                                        Signature: ${p.fileHash.substring(0, 24)}...
+                                        <div class="col-12 mb-3 paper-card-container">
+                                            <div class="card shadow-sm border-0 paper-card border">
+                                                <div class="card-body d-flex align-items-center flex-wrap gap-3">
+                                                    <div class="pdf-thumbnail"></div>
+                                                    <div style="flex: 1; min-width: 250px;">
+                                                        <h5 class="mb-1 fw-bold paper-title" style="color:#2c3e50;">${p.title}</h5>
+                                                        <p class="text-muted small mb-2">
+                                                            <span class="badge bg-light text-dark border me-2">Date: ${new Date(p.uploadDate).toLocaleDateString()}</span>
+                                                            <span class="badge bg-light text-dark border">Status: Published</span>
+                                                        </p>
+                                                        <div class="text-success small fw-bold mt-2">
+                                                            <span class="badge bg-success-subtle text-success border border-success">✓ Verified on Blockchain</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <button class="btn btn-dark px-4 py-2 fw-bold" onclick="downloadPublicArtifact('${p.artifactId}')">
+                                                            Download PDF
+                                                        </button>
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <button class="btn btn-dark px-4 py-2 fw-bold" onclick="downloadPublicArtifact('${p.artifactId}')">
-                                                        Download PDF
-                                                    </button>
-                                                </div>
                                             </div>
-                                        </div>
-                                    </div>`;
+                                        </div>`;
                 });
             } catch (err) { document.getElementById('publicPapersList').innerHTML = `<div class="text-danger">Failed to load publications.</div>`; }
         }
@@ -436,14 +456,9 @@
         function filterPublications() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const paperCards = document.querySelectorAll('.paper-card-container');
-
             paperCards.forEach(card => {
                 const title = card.querySelector('.paper-title').textContent.toLowerCase();
-                if (title.includes(query)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
+                card.style.display = title.includes(query) ? 'block' : 'none';
             });
         }
 
@@ -516,11 +531,12 @@
         }
 
         async function deleteArtifact(id) {
-            if (!confirm('Delete this upload?')) return;
+            if (!confirm('Are you sure you want to delete this document?')) return;
             const token = localStorage.getItem('token');
             try {
                 await fetch(`${baseUrl}/api/artifacts/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-                renderHistory();
+                if (document.querySelector('#admin').style.display === 'block') fetchAdminArtifacts();
+                else renderHistory();
             } catch (err) { showToast(err.message); }
         }
 
@@ -529,7 +545,7 @@
             const password = document.getElementById('loginPassword').value;
             try {
                 const res = await fetch(`${baseUrl}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
-                if (!res.ok) throw new Error('Invalid email or password');
+                if (!res.ok) throw new Error('Invalid email or password. Please try again.');
                 const data = await res.json();
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userId', data.user.id);
@@ -547,17 +563,21 @@
                 const res = await fetch(`${baseUrl}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, walletAddress: "" }) });
                 if (!res.ok) {
                     const errText = await res.text();
-                    let errMsg = errText;
+                    let errMsg = "Registration failed. Please check your inputs.";
                     try {
                         const parsed = JSON.parse(errText);
-                        errMsg = parsed[0]?.description || parsed.message || errText;
+                        if (Array.isArray(parsed)) errMsg = parsed.map(e => e.description).join('<br>');
+                        else if (parsed.errors) errMsg = Object.values(parsed.errors).flat().join('<br>');
+                        else if (parsed.message) errMsg = parsed.message;
+                        else errMsg = parsed[0]?.description || errText;
                     } catch (e) { }
-                    throw new Error(errMsg);
+
+                    throw new Error(translateBackendError(errMsg));
                 }
                 bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
                 showToast('Sign up successful! You may now login.');
-                document.getElementById('registerStatus').textContent = '';
-            } catch (err) { document.getElementById('registerStatus').textContent = err.message; }
+                document.getElementById('registerStatus').innerHTML = '';
+            } catch (err) { document.getElementById('registerStatus').innerHTML = err.message; }
         }
 
         function logout() {
@@ -601,7 +621,6 @@
         uploadArea.addEventListener('drop', e => {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
-
             if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                 fileInput.files = e.dataTransfer.files;
                 document.getElementById('uploadText').textContent = fileInput.files[0].name;
