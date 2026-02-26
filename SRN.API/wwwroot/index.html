@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strategic Research Nexus (SRN)</title>
+    <title>SRN</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <style>
@@ -111,7 +111,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm" style="background-color: #1a252f;">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#home">SRN</a>
+            <a class="navbar-brand fw-bold" href="#home" onclick="navigateTo('#home'); return false;">SRN</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -122,7 +122,7 @@
                     <li class="nav-item"><a class="nav-link" href="#team">Our Team</a></li>
                     <li class="nav-item"><a class="nav-link" href="#papers">Publications</a></li>
                     <li class="nav-item"><a class="nav-link" href="#verify">Verify</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact Us</a></li>
                     <li class="nav-item auth-required" style="display: none;"><a class="nav-link text-warning" href="#upload">Workspace</a></li>
                     <li class="nav-item admin-only" style="display: none;"><a class="nav-link text-danger fw-bold" href="#admin">Admin Panel</a></li>
                 </ul>
@@ -141,7 +141,7 @@
             <div class="p-5 mb-4 bg-white rounded-3 shadow-sm border text-center">
                 <h1 class="display-5 fw-bold mb-3" style="color: #2c3e50;">Strategic Research Nexus</h1>
                 <p class="col-md-10 mx-auto fs-5 text-muted mb-4">
-                    An independent, non-partisan platform connecting Afghan researchers worldwide. We bridge academic divides to foster interdisciplinary collaboration and advance evidence-based policy solutions for Afghanistan's sustainable development.
+                    An independent academic platform connecting Afghan researchers worldwide. We bridge academic divides to foster interdisciplinary collaboration and advance evidence-based research for Afghanistan's sustainable development.
                 </p>
                 <button class="btn btn-primary px-4 me-2" onclick="navigateTo('#about')">Learn More</button>
                 <button class="btn btn-outline-dark px-4" onclick="navigateTo('#papers')">Read Publications</button>
@@ -152,15 +152,15 @@
             <div class="row">
                 <div class="col-md-6 mb-4">
                     <h3 class="section-heading">Our Mission & Vision</h3>
-                    <p class="text-muted">To advance knowledge production and develop evidence-based policies that empower Afghan scholars. We envision a sustainable, inclusive, and flourishing Afghan society underpinned by equitable development, informed public engagement, and accountable governance.</p>
-                    <p class="text-muted">We are committed to the principles of equity, intellectual rigor, and ethical scholarship, guiding strategic interventions for civil society and academic institutions globally.</p>
+                    <p class="text-muted">To advance knowledge production and develop evidence-based research that empowers Afghan scholars. We envision a sustainable, inclusive, and flourishing Afghan society underpinned by equitable development, academic excellence, and technological innovation.</p>
+                    <p class="text-muted">We are committed to the principles of equity, intellectual rigor, and ethical scholarship, guiding strategic interventions for academic institutions globally.</p>
                 </div>
                 <div class="col-md-6 mb-4">
                     <h3 class="section-heading">Research Focus</h3>
                     <ul class="list-group list-group-flush border-0">
-                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">E-Government & Digital Democracy:</strong> Enhancing public service delivery, transparency, and promoting civic engagement.</li>
-                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">Culture & Literature:</strong> Preserving and analyzing Afghanistan’s rich cultural heritage and its role in shaping national identity.</li>
-                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">Sustainable Governance:</strong> Frameworks ensuring effective, inclusive, and resilient governmental systems.</li>
+                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">Digital Transformation & Technology:</strong> Enhancing digital service delivery, data integration, and promoting technological literacy in Afghanistan.</li>
+                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">Culture & Literature:</strong> Preserving and analyzing Afghanistan’s rich cultural heritage and its role in shaping societal identity.</li>
+                        <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">Sustainable Systems:</strong> Frameworks ensuring effective, inclusive, and resilient technological and infrastructure systems.</li>
                         <li class="list-group-item bg-transparent px-0"><strong style="color:#1a252f;">Environmental Sustainability:</strong> Supporting responsible use of natural resources, climate change mitigation, and ecological balance.</li>
                     </ul>
                 </div>
@@ -168,32 +168,45 @@
         </section>
 
         <section id="team" class="mb-5" style="display: none;">
-            <div class="text-center mb-5"><h2 class="section-heading">The SRN Team</h2><p class="section-subheading">A global network of dedicated academics and researchers.</p></div>
+            <div class="text-center mb-5">
+                <h2 class="section-heading">The SRN Team</h2>
+                <p class="section-subheading">A global network of dedicated academics and researchers.</p>
+            </div>
             <div class="row">
+
                 <div class="col-md-4 mb-4 text-center">
-                    <img src="https://via.placeholder.com/150/34495e/ffffff?text=Dr.Saay" class="team-photo">
-                    <h5 class="fw-bold">Dr. Salim Saay</h5>
+                    <img src="images/salim.jpg" alt="Photo of Dr. Salim Saay" class="team-photo">
+                    <h5 class="fw-bold" style="color:#2c3e50;">Dr. Salim Saay</h5>
                     <p class="text-muted small fw-bold">University of Limerick & Lero</p>
-                    <p class="small text-muted px-2 text-start">Assoc. Professor and Researcher. Former Director of IT at Afghanistan's Ministry of Higher Education. His research focuses on cross-border data integration, broker-based architectures, and AI.</p>
+                    <p class="small text-muted px-2 text-start">
+                        Associate Professor and Researcher holding a Ph.D. in Software Engineering. Former faculty at Kabul University and IT leader in Afghan higher education. His research focuses on cross-border data integration, broker-based architectures, blockchain, and AI.
+                    </p>
                 </div>
+
                 <div class="col-md-4 mb-4 text-center">
-                    <img src="https://via.placeholder.com/150/34495e/ffffff?text=Dr.Mohibbi" class="team-photo">
-                    <h5 class="fw-bold">Dr. Abdul Aziz Mohibbi</h5>
-                    <p class="text-muted small fw-bold">Trinity College Dublin</p>
-                    <p class="small text-muted px-2 text-start">Agriculture & Environmental Engineer. Former Chancellor of Bamyan University. Focuses on co-design and community-based systems innovation for regional sustainability.</p>
+                    <img src="images/abdul.jpg" alt="Photo of Dr. Abdul Aziz Mohibbi" class="team-photo">
+                    <h5 class="fw-bold" style="color:#2c3e50;">Dr. Abdul Aziz Mohibbi</h5>
+                    <p class="text-muted small fw-bold">Trinity College Dublin & Maynooth University</p>
+                    <p class="small text-muted px-2 text-start">
+                        Agriculture & Environmental Engineer. Former Chancellor of Bamyan University and Deputy Dean at Kabul University, championing inclusive academic initiatives. His research focuses on environmental changes, co-design, and community-based systems innovation for regional sustainability.
+                    </p>
                 </div>
+
                 <div class="col-md-4 mb-4 text-center">
-                    <img src="https://via.placeholder.com/150/34495e/ffffff?text=Dr.Asadullahi" class="team-photo">
-                    <h5 class="fw-bold">Dr. Ahmad Farid Asadullahi</h5>
+                    <img src="images/ahmad.jpg" alt="Photo of Dr. Ahmad Farid Asadullahi" class="team-photo">
+                    <h5 class="fw-bold" style="color:#2c3e50;">Dr. Ahmad Farid Asadullahi</h5>
                     <p class="text-muted small fw-bold">Haverford College</p>
-                    <p class="small text-muted px-2 text-start">Assistant Professor holding a Ph.D. in Persian Literature. Actively involved in civil society and human rights advocacy, with extensive academic experience across multiple institutions.</p>
+                    <p class="small text-muted px-2 text-start">
+                        Assistant Professor holding a Ph.D. in Persian Literature. With extensive teaching experience at Kabul and Ghazni Universities, he actively supports Afghan community development and cultural preservation through various non-governmental organizations.
+                    </p>
                 </div>
+
             </div>
         </section>
 
         <section id="papers" class="mb-5" style="display: none;">
             <h2 class="section-heading mb-2">Publications</h2>
-            <p class="text-muted mb-4">Open-access research, policy briefs, and reports supporting Afghanistan's socio-economic resilience.</p>
+            <p class="text-muted mb-4">Open-access research, academic papers, and technical reports supporting socio-economic resilience.</p>
 
             <div class="input-group mb-4 shadow-sm">
                 <span class="input-group-text bg-white border-end-0 text-muted">🔍</span>
@@ -223,8 +236,8 @@
             <div class="card shadow-sm border col-md-8 mx-auto">
                 <div class="card-body p-5 text-center">
                     <h2 class="section-heading mb-3">Contact Us</h2>
-                    <p class="text-muted mb-4">For academic inquiries, research collaboration, or policy discussions, please contact the coordinating team.</p>
-                    <h5 class="fw-bold" style="color: #2c3e50;">📧 stratigic.info@gmail.com</h5>
+                    <p class="text-muted mb-4">For academic inquiries, research collaboration, or technical discussions, please contact the coordinating team.</p>
+                    <h5 class="fw-bold" style="color: #2c3e50;">stratigic.info@gmail.com</h5>
                 </div>
             </div>
         </section>
@@ -278,12 +291,15 @@
     <div class="modal fade" id="loginModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-light border-0"><h6 class="modal-title fw-bold">Researcher Sign In</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header bg-light border-0">
+                    <h6 class="modal-title fw-bold">Welcome Back</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body p-4">
                     <form onsubmit="event.preventDefault(); loginUser();">
                         <input type="email" id="loginEmail" class="form-control form-control-sm mb-3" placeholder="Email Address" required>
                         <input type="password" id="loginPassword" class="form-control form-control-sm mb-3" placeholder="Password" required>
-                        <button type="submit" class="btn btn-dark btn-sm w-100">Sign In</button>
+                        <button type="submit" class="btn btn-dark btn-sm w-100">Login</button>
                     </form>
                     <div id="loginStatus" class="text-danger mt-2 small text-center"></div>
                 </div>
@@ -297,8 +313,8 @@
                 <div class="modal-header bg-light border-0"><h6 class="modal-title fw-bold">Join SRN Network</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body p-4">
                     <form onsubmit="event.preventDefault(); registerUser();">
-                        <input type="email" id="registerEmail" class="form-control form-control-sm mb-3" placeholder="Email" required>
-                        <input type="password" id="registerPassword" class="form-control form-control-sm mb-3" placeholder="Password (Min 6 chars)" required>
+                        <input type="email" id="registerEmail" class="form-control form-control-sm mb-3" placeholder="Email Address" required>
+                        <input type="password" id="registerPassword" class="form-control form-control-sm mb-3" placeholder="Password" required>
                         <button type="submit" class="btn btn-primary btn-sm w-100">Sign Up</button>
                     </form>
                     <div id="registerStatus" class="text-danger mt-2 small text-center"></div>
@@ -329,9 +345,12 @@
             document.querySelectorAll('section').forEach(s => s.style.display = 'none');
             const target = document.querySelector(section);
             if (target) target.style.display = 'block';
+
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            const activeLink = document.querySelector(`a[href="${section}"]`);
+
+            const activeLink = document.querySelector(`.nav-link[href="${section}"]`);
             if (activeLink) activeLink.classList.add('active');
+
             if (section === '#papers') fetchPublicPapers();
             if (section === '#upload') renderHistory();
             if (section === '#admin') fetchAdminArtifacts();
@@ -388,28 +407,28 @@
                 container.innerHTML = papers.length === 0 ? '<div class="col-12"><div class="alert bg-white border text-center text-muted">No publications available at this time.</div></div>' : '';
                 papers.forEach(p => {
                     container.innerHTML += `
-                        <div class="col-12 mb-3 paper-card-container">
-                            <div class="card shadow-sm border-0 paper-card border">
-                                <div class="card-body d-flex align-items-center flex-wrap gap-3">
-                                    <div class="pdf-thumbnail"></div>
-                                    <div style="flex: 1; min-width: 250px;">
-                                        <h5 class="mb-1 fw-bold paper-title" style="color:#2c3e50;">${p.title}</h5>
-                                        <p class="text-muted small mb-2">
-                                            <span class="badge bg-light text-dark border me-2">Date: ${new Date(p.uploadDate).toLocaleDateString()}</span>
-                                            <span class="badge bg-light text-dark border">Status: Published</span>
-                                        </p>
-                                        <div class="hash-text bg-light p-2 rounded border-start border-4 border-secondary d-inline-block">
-                                            Signature: ${p.fileHash.substring(0, 24)}...
+                                    <div class="col-12 mb-3 paper-card-container">
+                                        <div class="card shadow-sm border-0 paper-card border">
+                                            <div class="card-body d-flex align-items-center flex-wrap gap-3">
+                                                <div class="pdf-thumbnail"></div>
+                                                <div style="flex: 1; min-width: 250px;">
+                                                    <h5 class="mb-1 fw-bold paper-title" style="color:#2c3e50;">${p.title}</h5>
+                                                    <p class="text-muted small mb-2">
+                                                        <span class="badge bg-light text-dark border me-2">Date: ${new Date(p.uploadDate).toLocaleDateString()}</span>
+                                                        <span class="badge bg-light text-dark border">Status: Published</span>
+                                                    </p>
+                                                    <div class="hash-text bg-light p-2 rounded border-start border-4 border-secondary d-inline-block">
+                                                        Signature: ${p.fileHash.substring(0, 24)}...
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <button class="btn btn-dark px-4 py-2 fw-bold" onclick="downloadPublicArtifact('${p.artifactId}')">
+                                                        Download PDF
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <button class="btn btn-dark px-4 py-2 fw-bold" onclick="downloadPublicArtifact('${p.artifactId}')">
-                                            Download PDF
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`;
+                                    </div>`;
                 });
             } catch (err) { document.getElementById('publicPapersList').innerHTML = `<div class="text-danger">Failed to load publications.</div>`; }
         }
