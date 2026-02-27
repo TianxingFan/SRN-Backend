@@ -50,3 +50,76 @@ The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the *
 ```bash
 git clone [https://github.com/TianxingFan/SRN-Backend.git]
 cd SRN_Backend/SRN.API
+
+### 2. Configure Environment Variables
+
+Create an `appsettings.Development.json` file inside the `SRN.API` directory  
+(or alternatively use **Visual Studio User Secrets** for better security in development).
+
+Add the following configuration:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=your_postgres_host;Database=srndb;Username=postgres;Password=yourpassword;"
+  },
+  "JwtSettings": {
+    "Key": "Your_Super_Secret_Key_Must_Be_Longer_Than_32_Chars!",
+    "Issuer": "SRNTeam",
+    "Audience": "SRNUsers",
+    "DurationInMinutes": 120
+  },
+  "Blockchain": {
+    "Provider": "Mock", 
+    // Use "Real" for testnet or mainnet deployment
+    "PrivateKey": "YOUR_ETH_WALLET_PRIVATE_KEY"
+  }
+}
+```
+
+> ⚠️ **Important Security Notes**
+>
+> - Never commit real database credentials or private keys to GitHub.
+> - Use environment variables or `dotnet user-secrets` in production.
+> - Ensure your JWT key is at least 32 characters long.
+
+---
+
+### 3. Apply Database Migrations
+
+The application is configured to automatically apply **EF Core migrations** on startup.
+
+Simply run:
+
+```bash
+dotnet run
+```
+
+On first launch, the system will:
+
+- Create all necessary database tables
+- Seed the default **Admin** account
+- Initialize required roles
+
+---
+
+### 4. Access the Portal
+
+Once the application is running, open your browser and navigate to:
+
+```
+https://localhost:xxxx/index.html
+```
+
+(Replace `xxxx` with the port shown in your console.)
+
+---
+
+### Default Admin Credentials (Auto-Seeded)
+
+```
+Email:    admin@srn.ie
+Password: Admin@123456
+```
+
+> ⚠️ It is strongly recommended to change the default password immediately after first login.
