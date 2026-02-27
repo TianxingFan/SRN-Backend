@@ -50,6 +50,9 @@ The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the *
 ```bash
 git clone [https://github.com/TianxingFan/SRN-Backend.git]
 cd SRN_Backend/SRN.API
+```
+
+---
 
 ### 2. Configure Environment Variables
 
