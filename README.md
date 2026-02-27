@@ -1,6 +1,6 @@
 # Strategic Research Nexus (SRN)
 
-**Strategic Research Nexus (SRN)** is an independent, non-partisan platform connecting Afghan researchers worldwide. We bridge academic divides to foster interdisciplinary collaboration and advance evidence-based research for Afghanistan's sustainable development.
+**SRN** is An independent academic platform connecting Afghan researchers worldwide. We bridge academic divides to foster interdisciplinary collaboration and advance evidence-based research for Afghanistan's sustainable development.
 
 This repository contains the source code for the SRN Web Portal and its decentralized document verification system.
 
