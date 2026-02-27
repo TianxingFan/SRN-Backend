@@ -1,9 +1,4 @@
-# 🎓 Strategic Research Nexus (SRN)
-
-[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)](#)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon.tech-336791?logo=postgresql&logoColor=white)](#)
-[![Ethereum](https://img.shields.io/badge/Blockchain-Ethereum-3C3C3D?logo=ethereum&logoColor=white)](#)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean_Architecture-success)](#)
+# Strategic Research Nexus (SRN)
 
 **Strategic Research Nexus (SRN)** is an independent, non-partisan platform connecting Afghan researchers worldwide. We bridge academic divides to foster interdisciplinary collaboration and advance evidence-based research for Afghanistan's sustainable development.
 
@@ -11,7 +6,7 @@ This repository contains the source code for the SRN Web Portal and its decentra
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 - **Zero-Trust Document Verification**: All approved publications are cryptographically anchored to the Ethereum blockchain. Users can independently verify the provenance and integrity of any downloaded PDF using its SHA-256 hash.
 - **Role-Based Workflows**: 
@@ -23,7 +18,7 @@ This repository contains the source code for the SRN Web Portal and its decentra
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the **Clean Architecture** principles to ensure separation of concerns, testability, and maintainability:
 
@@ -34,7 +29,7 @@ The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the *
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 * **Backend**: ASP.NET Core Web API (.NET 8)
 * **Frontend**: HTML5, Bootstrap 5, Vanilla JavaScript, Fetch API
@@ -45,7 +40,7 @@ The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the *
 
 ---
 
-## 🚀 Getting Started (Local Development)
+## Getting Started (Local Development)
 
 ### Prerequisites
 * [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
