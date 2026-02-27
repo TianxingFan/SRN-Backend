@@ -48,5 +48,5 @@ The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the *
 
 ### 1. Clone the repository
 ```bash
-git clone [https://github.com/your-username/SRN_Backend.git](https://github.com/your-username/SRN_Backend.git)
+git clone [https://github.com/TianxingFan/SRN-Backend.git]
 cd SRN_Backend/SRN.API
