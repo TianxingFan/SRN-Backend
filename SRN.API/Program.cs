@@ -159,7 +159,7 @@ try
             }
         }
 
-        var adminEmail = "admin@srnlab.edu";
+        var adminEmail = "admin@srn.ie";
         var adminUser = await userManager.FindByEmailAsync(adminEmail).ConfigureAwait(false);
         if (adminUser == null)
         {
