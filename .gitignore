@@ -367,3 +367,7 @@ FodyWeavers.xsd
 # Ignore uploaded artifact PDFs but keep the folder structure
 SRN.API/Uploads/artifacts/*
 !SRN.API/Uploads/artifacts/.keep
+
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
