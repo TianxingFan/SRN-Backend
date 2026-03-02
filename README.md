@@ -1,12 +1,23 @@
-# Strategic Research Nexus (SRN)
+# 🎓 Strategic Research Nexus (SRN)
 
-**SRN** is An independent academic platform connecting Afghan researchers worldwide. We bridge academic divides to foster interdisciplinary collaboration and advance evidence-based research for Afghanistan's sustainable development.
+![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Azure-0078D4?logo=microsoftazure&logoColor=white)](https://srn-nexus.azurewebsites.net)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+**Strategic Research Nexus (SRN)** is an independent academic platform connecting Afghan researchers worldwide. We bridge academic divides to foster interdisciplinary collaboration and advance evidence-based research for Afghanistan's sustainable development.
 
 This repository contains the source code for the SRN Web Portal and its decentralized document verification system.
 
+## 🚀 Live Demo
+
+The platform is fully deployed and live on Microsoft Azure (Linux App Service).
+
+👉 **[Click here to visit the SRN Portal](https://srn-nexus.azurewebsites.net)**
+
 ---
 
-## Key Features
+## ✨ Key Features
 
 - **Zero-Trust Document Verification**: All approved publications are cryptographically anchored to the Ethereum blockchain. Users can independently verify the provenance and integrity of any downloaded PDF using its SHA-256 hash.
 - **Role-Based Workflows**: 
@@ -18,7 +29,7 @@ This repository contains the source code for the SRN Web Portal and its decentra
 
 ---
 
-## System Architecture
+## 🏗️ System Architecture
 
 The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the **Clean Architecture** principles to ensure separation of concerns, testability, and maintainability:
 
@@ -29,7 +40,7 @@ The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the *
 
 ---
 
-## Technology Stack
+## 🛠️ Technology Stack
 
 * **Backend**: ASP.NET Core Web API (.NET 8)
 * **Frontend**: HTML5, Bootstrap 5, Vanilla JavaScript, Fetch API
@@ -37,92 +48,19 @@ The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the *
 * **Real-time Engine**: SignalR
 * **Blockchain Integration**: Nethereum (Ethereum Web3 for .NET)
 * **Authentication**: ASP.NET Core Identity + JWT Bearer Tokens
+* **Deployment**: Azure App Service (Linux) + GitHub Actions CI/CD
 
 ---
 
-## Getting Started (Local Development)
+## 💻 Getting Started (Local Development)
+
+Follow these steps to run the backend locally.
 
 ### Prerequisites
 * [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-* A PostgreSQL instance (Local or Cloud like [Neon.tech](https://neon.tech/))
+* A PostgreSQL instance (Local or Docker)
 
 ### 1. Clone the repository
 ```bash
-git clone [https://github.com/TianxingFan/SRN-Backend.git]
-cd SRN_Backend/SRN.API
-```
-
----
-
-### 2. Configure Environment Variables
-
-Create an `appsettings.Development.json` file inside the `SRN.API` directory  
-(or alternatively use **Visual Studio User Secrets** for better security in development).
-
-Add the following configuration:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=your_postgres_host;Database=srndb;Username=postgres;Password=yourpassword;"
-  },
-  "JwtSettings": {
-    "Key": "Your_Super_Secret_Key_Must_Be_Longer_Than_32_Chars!",
-    "Issuer": "SRNTeam",
-    "Audience": "SRNUsers",
-    "DurationInMinutes": 120
-  },
-  "Blockchain": {
-    "Provider": "Mock", 
-    // Use "Real" for testnet or mainnet deployment
-    "PrivateKey": "YOUR_ETH_WALLET_PRIVATE_KEY"
-  }
-}
-```
-
-> ⚠️ **Important Security Notes**
->
-> - Never commit real database credentials or private keys to GitHub.
-> - Use environment variables or `dotnet user-secrets` in production.
-> - Ensure your JWT key is at least 32 characters long.
-
----
-
-### 3. Apply Database Migrations
-
-The application is configured to automatically apply **EF Core migrations** on startup.
-
-Simply run:
-
-```bash
-dotnet run
-```
-
-On first launch, the system will:
-
-- Create all necessary database tables
-- Seed the default **Admin** account
-- Initialize required roles
-
----
-
-### 4. Access the Portal
-
-Once the application is running, open your browser and navigate to:
-
-```
-https://localhost:xxxx/index.html
-```
-
-(Replace `xxxx` with the port shown in your console.)
-
----
-
-### Default Admin Credentials (Auto-Seeded)
-
-```
-Email:    admin@srn.ie
-Password: Admin@123456
-```
-
-> ⚠️ It is strongly recommended to change the default password immediately after first login.
+git clone [https://github.com/TianxingFan/SRN-Backend.git](https://github.com/TianxingFan/SRN-Backend.git)
+cd SRN-Backend/SRN.API
