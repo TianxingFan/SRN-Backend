@@ -1,23 +1,18 @@
 # 🎓 Strategic Research Nexus (SRN)
 
-![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Azure-0078D4?logo=microsoftazure&logoColor=white)](https://srn-nexus.azurewebsites.net)
-![License](https://img.shields.io/badge/license-MIT-green)
-
 **Strategic Research Nexus (SRN)** is an independent academic platform connecting Afghan researchers worldwide. We bridge academic divides to foster interdisciplinary collaboration and advance evidence-based research for Afghanistan's sustainable development.
 
 This repository contains the source code for the SRN Web Portal and its decentralized document verification system.
 
-## 🚀 Live Demo
+## Live Demo
 
 The platform is fully deployed and live on Microsoft Azure (Linux App Service).
 
-👉 **[Click here to visit the SRN Portal](https://srn-nexus.azurewebsites.net)**
+**[Click here to visit the SRN Portal](srn-esg8b4gsfrhne4dj.germanywestcentral-01.azurewebsites.net)**
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 - **Zero-Trust Document Verification**: All approved publications are cryptographically anchored to the Ethereum blockchain. Users can independently verify the provenance and integrity of any downloaded PDF using its SHA-256 hash.
 - **Role-Based Workflows**: 
@@ -29,7 +24,7 @@ The platform is fully deployed and live on Microsoft Azure (Linux App Service).
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the **Clean Architecture** principles to ensure separation of concerns, testability, and maintainability:
 
@@ -40,7 +35,7 @@ The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the *
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 * **Backend**: ASP.NET Core Web API (.NET 8)
 * **Frontend**: HTML5, Bootstrap 5, Vanilla JavaScript, Fetch API
@@ -52,7 +47,7 @@ The backend is built with **C# 12 and ASP.NET Core 8**, strictly following the *
 
 ---
 
-## 💻 Getting Started (Local Development)
+## Getting Started (Local Development)
 
 Follow these steps to run the backend locally.
 
@@ -62,5 +57,64 @@ Follow these steps to run the backend locally.
 
 ### 1. Clone the repository
 ```bash
-git clone [https://github.com/TianxingFan/SRN-Backend.git](https://github.com/TianxingFan/SRN-Backend.git)
+git clone https://github.com/TianxingFan/SRN-Backend.git
 cd SRN-Backend/SRN.API
+```
+
+### 2. Configure Local Environment (Crucial)
+
+Since sensitive configuration files are git-ignored for security, you must create a local configuration file manually.
+
+1. Create a new file named `appsettings.Development.json` inside the SRN.API folder.
+2. Paste the following JSON content into it.
+3. Update the `DefaultConnection` with your local PostgreSQL credentials.
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=SRN_Local_Db;Username=postgres;Password=YOUR_LOCAL_DB_PASSWORD;"
+  },
+  "JwtSettings": {
+    "Key": "This_Is_A_Local_Dev_Secret_Key_For_Testing_Only_123456",
+    "Issuer": "SRN.API",
+    "Audience": "SRN.Client",
+    "DurationInMinutes": 60
+  },
+  "Blockchain": {
+    "Provider": "Mock", 
+    "RpcUrl": "",
+    "PrivateKey": "",
+    "ContractAddress": ""
+  }
+}
+```
+
+### 3. Run the Application
+
+The application is configured to automatically apply database migrations on startup.
+
+```bash
+dotnet run
+```
+
+Wait for the console to display Now listening on: http://localhost:xxxx.
+
+---
+
+### 4. Access the Portal
+
+Open your browser and navigate to the localhost URL shown in your terminal:
+
+```
+http://localhost:5213/index.html
+```
+
+Default Admin Credentials:
+Email: admin@srn.ie
+Password: Admin@123456
