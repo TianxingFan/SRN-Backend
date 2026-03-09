@@ -55,17 +55,13 @@ This architecture ensures that while file retrieval is fast and efficient, the i
 
 ```mermaid
 graph TD
-    %% 定义样式
     classDef azure fill:#0078D4,stroke:#fff,stroke-width:2px,color:#fff;
     classDef blockchain fill:#363636,stroke:#fff,stroke-width:2px,color:#fff;
     classDef db fill:#336791,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef client fill:#4CAF50,stroke:#fff,stroke-width:2px,color:#fff;
 
-    %% 用户与客户端
     User[End User] -->|HTTPS| Client[Frontend]
     class Client client
 
-    %% Azure 云
     subgraph AzureCloud [Azure App Service]
         direction TB
         API[Backend API .NET 8]
@@ -82,21 +78,18 @@ graph TD
     end
     class API,Auth,SignalR,BizLogic azure
 
-    %% 存储层
     subgraph Storage [Persistence Layer]
         DB[(Neon PostgreSQL Serverless)]
         FS[File Storage Blob or Local]
     end
     class DB,FS db
 
-    %% 区块链层
     subgraph Web3 [Blockchain Layer]
         EthNode[Ethereum Sepolia]
         SmartContract[ArtifactRegistry Contract]
     end
     class EthNode,SmartContract blockchain
 
-    %% 连接
     Client <-->|REST JSON| API
     Client <-->|WebSocket| SignalR
     
@@ -108,6 +101,45 @@ graph TD
 
     EthNode -.->|Tx Confirmed Event| BizLogic
     BizLogic -.->|Notify User| SignalR
+```
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Res as Researcher
+    actor Admin as Administrator
+    participant UI as Frontend
+    participant API as Web API
+    participant DB as PostgreSQL
+    participant Chain as Nethereum Service
+    participant Eth as Ethereum Network
+    participant Hub as SignalR Hub
+
+    Res->>UI: Upload PDF
+    UI->>API: POST /api/artifacts
+    API->>API: Calculate SHA-256
+    API->>DB: Save (Status="Pending")
+    API-->>Res: 201 Created
+
+    Note over Admin, Hub: Core Business Logic
+    Admin->>UI: Click "Approve & Publish"
+    UI->>API: POST /approve/{id}
+    API->>DB: Update (Status="Processing")
+    API->>Chain: Async Dispatch (AnchorJob)
+    API-->>UI: 202 Accepted (Show Spinner)
+    
+    Chain->>Eth: Send Transaction (registerHash)
+    loop Mining (15s+)
+        Eth-->>Eth: Block Confirmation
+    end
+    Eth-->>Chain: Tx Confirmed (TxHash: 0x...)
+
+    Chain->>DB: Update (Status="Published", TxHash)
+    Chain->>Hub: Publish Event (ArtifactId, TxHash)
+    Hub-->>UI: WebSocket Push: "Success"
+    UI-->>Admin: Update UI to Green (Verified)
 ```
 
 The solution is organized into four distinct layers:
