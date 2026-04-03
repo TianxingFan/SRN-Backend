@@ -22,7 +22,6 @@ namespace SRN.Domain.Entities
 
         public DateTime UploadDate { get; set; } = DateTime.UtcNow;
 
-        // ⚠️ 修改点：从 Guid 改为 string，以匹配 IdentityUser 的默认主键类型
         [Required]
         [ForeignKey(nameof(Owner))]
         public string OwnerId { get; set; } = string.Empty;

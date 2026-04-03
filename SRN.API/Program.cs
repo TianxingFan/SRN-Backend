@@ -32,17 +32,8 @@ try
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(connectionString));
 
-    var blockchainProvider = builder.Configuration["Blockchain:Provider"];
-    if (blockchainProvider == "Real")
-    {
-        builder.Services.AddScoped<IBlockchainService, EthereumBlockchainService>();
-        Log.Information("--> Using REAL Ethereum Blockchain Service");
-    }
-    else
-    {
-        builder.Services.AddScoped<IBlockchainService, MockBlockchainService>();
-        Log.Information("--> Using MOCK Blockchain Service (No Gas cost)");
-    }
+    builder.Services.AddScoped<IBlockchainService, EthereumBlockchainService>();
+    Log.Information("--> Using REAL Ethereum Blockchain Service (Sepolia Testnet)");
 
     builder.Services.AddScoped<IArtifactRepository, ArtifactRepository>();
     builder.Services.AddScoped<IArtifactService, SRN.Application.Services.ArtifactService>();
@@ -143,7 +134,7 @@ try
     app.MapControllers();
     app.MapHub<SRN.Infrastructure.Hubs.NotificationHub>("/notificationHub");
 
-        using (var scope = app.Services.CreateScope())
+    using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<SRN.Infrastructure.Persistence.ApplicationDbContext>();
         db.Database.Migrate();

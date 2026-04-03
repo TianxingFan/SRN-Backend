@@ -95,6 +95,8 @@ namespace SRN.Application.Services
 
                 try
                 {
+                    await Task.Delay(15000);
+
                     string txHash = await bgBlockchain.RegisterArtifactAsync(currentFileHash);
 
                     var artifactToUpdate = await bgRepository.GetByIdAsync(Guid.Parse(currentArtifactId));
