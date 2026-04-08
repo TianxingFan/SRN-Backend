@@ -16,7 +16,7 @@ This project is designed to replace traditional, centralized academic repositori
 
 This architecture ensures that while file retrieval remains synchronous and efficient, the integrity of every research paper is mathematically verifiable on the public ledger without incurring exorbitant Gas fees.
 
-[**Live Demo**](https://srn-esg8b4gsfrhne4dj.germanywestcentral-01.azurewebsites.net/) | [**Etherscan Contract**](#) *(Add your contract link here)*
+[**Live Demo**](https://srn-esg8b4gsfrhne4dj.germanywestcentral-01.azurewebsites.net/) | [**Etherscan Contract**](https://sepolia.etherscan.io/address/0xDA2c107733B27FffB602213Db79Ca4e2c5D54899)
 
 ---
 
@@ -57,7 +57,7 @@ This architecture ensures that while file retrieval remains synchronous and effi
 
 *(The system enforces a strict separation of state management and trust verification.)*
 
-![System Architecture](./docs/architecture.jpg)
+![System Architecture](./docs/architecture.png)
 
 ## Anchoring Sequence (Latency Mitigation)
 
