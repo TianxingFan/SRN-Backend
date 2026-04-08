@@ -398,8 +398,10 @@
                         statusColor = 'success'; actionHtml = `<span class="text-success small fw-bold">✓ Published</span>`;
                     }
 
+                    const safeTitle = a.title ? a.title.replace(/"/g, '&quot;') : '';
+
                     actionHtml += `<button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteArtifact('${a.artifactId}')">Delete</button>`;
-                    tbody.innerHTML += `<tr><td class="ps-3"><strong>${a.title}</strong><br><small class="hash-text">Ref: ${a.fileHash.substring(0, 16)}...</small></td><td><span class="badge bg-${statusColor}">${a.status}</span></td><td><small class="text-muted">${new Date(a.uploadDate).toLocaleDateString()}</small></td><td><button class="btn btn-sm btn-outline-secondary me-2" onclick="downloadPrivateArtifact('${a.artifactId}')">Review PDF</button>${actionHtml}</td></tr>`;
+                    tbody.innerHTML += `<tr><td class="ps-3"><strong>${a.title}</strong><br><small class="hash-text">Ref: ${a.fileHash.substring(0, 16)}...</small></td><td><span class="badge bg-${statusColor}">${a.status}</span></td><td><small class="text-muted">${new Date(a.uploadDate).toLocaleDateString()}</small></td><td><button class="btn btn-sm btn-outline-secondary me-2" data-title="${safeTitle}" onclick="downloadPrivateArtifact('${a.artifactId}', this.dataset.title)">Review PDF</button>${actionHtml}</td></tr>`;
                 });
 
                 if (isAnyProcessing && document.querySelector('#admin').style.display === 'block') {
@@ -426,29 +428,30 @@
                 const container = document.getElementById('publicPapersList');
                 container.innerHTML = papers.length === 0 ? '<div class="col-12"><div class="alert bg-white border text-center text-muted">No publications available at this time.</div></div>' : '';
                 papers.forEach(p => {
+                    const safeTitle = p.title ? p.title.replace(/"/g, '&quot;') : '';
                     container.innerHTML += `
-                                        <div class="col-12 mb-3 paper-card-container">
-                                            <div class="card shadow-sm border-0 paper-card border">
-                                                <div class="card-body d-flex align-items-center flex-wrap gap-3">
-                                                    <div class="pdf-thumbnail"></div>
-                                                    <div style="flex: 1; min-width: 250px;">
-                                                        <h5 class="mb-1 fw-bold paper-title" style="color:#2c3e50;">${p.title}</h5>
-                                                        <p class="text-muted small mb-2">
-                                                            <span class="badge bg-light text-dark border me-2">Date: ${new Date(p.uploadDate).toLocaleDateString()}</span>
-                                                            <span class="badge bg-light text-dark border">Status: Published</span>
-                                                        </p>
-                                                        <div class="text-success small fw-bold mt-2">
-                                                            <span class="badge bg-success-subtle text-success border border-success">✓ Verified on Blockchain</span>
+                                            <div class="col-12 mb-3 paper-card-container">
+                                                <div class="card shadow-sm border-0 paper-card border">
+                                                    <div class="card-body d-flex align-items-center flex-wrap gap-3">
+                                                        <div class="pdf-thumbnail"></div>
+                                                        <div style="flex: 1; min-width: 250px;">
+                                                            <h5 class="mb-1 fw-bold paper-title" style="color:#2c3e50;">${p.title}</h5>
+                                                            <p class="text-muted small mb-2">
+                                                                <span class="badge bg-light text-dark border me-2">Date: ${new Date(p.uploadDate).toLocaleDateString()}</span>
+                                                                <span class="badge bg-light text-dark border">Status: Published</span>
+                                                            </p>
+                                                            <div class="text-success small fw-bold mt-2">
+                                                                <span class="badge bg-success-subtle text-success border border-success">✓ Verified on Blockchain</span>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <button class="btn btn-dark px-4 py-2 fw-bold" data-title="${safeTitle}" onclick="downloadPublicArtifact('${p.artifactId}', this.dataset.title)">
+                                                                Download
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        <button class="btn btn-dark px-4 py-2 fw-bold" onclick="downloadPublicArtifact('${p.artifactId}')">
-                                                            Download PDF
-                                                        </button>
-                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>`;
+                                            </div>`;
                 });
             } catch (err) { document.getElementById('publicPapersList').innerHTML = `<div class="text-danger">Failed to load publications.</div>`; }
         }
@@ -462,13 +465,19 @@
             });
         }
 
-        async function downloadPublicArtifact(id) {
+        async function downloadPublicArtifact(id, title) {
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/public/download/${id}`);
                 if (!res.ok) throw new Error('File not found');
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `SRN_Publication.pdf`; a.click();
+                const a = document.createElement('a'); a.href = url;
+
+                const fileName = title ? `${title}.pdf` : `SRN_Publication.pdf`;
+                a.download = fileName;
+
+                a.click();
+                URL.revokeObjectURL(url);
             } catch (err) { showToast(err.message); }
         }
 
@@ -514,19 +523,27 @@
                 list.innerHTML = history.length === 0 ? '<li class="list-group-item text-muted text-center py-4 border-0">No uploads found.</li>' : '';
                 history.forEach(h => {
                     const statusColor = h.status === 'Registered' ? 'success' : (h.status.includes('Pending') ? 'warning text-dark' : 'danger');
-                    list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center py-3"><div><strong class="d-block" style="color:#2c3e50;">${h.title}</strong><span class="badge bg-${statusColor} mt-1">${h.status}</span></div><div><button class="btn btn-sm btn-outline-secondary" onclick="downloadPrivateArtifact('${h.artifactId}')">PDF</button><button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteArtifact('${h.artifactId}')">Delete</button></div></li>`;
+                    const safeTitle = h.title ? h.title.replace(/"/g, '&quot;') : '';
+
+                    list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center py-3"><div><strong class="d-block" style="color:#2c3e50;">${h.title}</strong><span class="badge bg-${statusColor} mt-1">${h.status}</span></div><div><button class="btn btn-sm btn-outline-secondary" data-title="${safeTitle}" onclick="downloadPrivateArtifact('${h.artifactId}', this.dataset.title)">PDF</button><button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteArtifact('${h.artifactId}')">Delete</button></div></li>`;
                 });
             } catch (err) { console.error(err); }
         }
 
-        async function downloadPrivateArtifact(id) {
+        async function downloadPrivateArtifact(id, title) {
             const token = localStorage.getItem('token');
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/download/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error('Download failed');
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `SRN_Document.pdf`; a.click();
+                const a = document.createElement('a'); a.href = url;
+
+                const fileName = title ? `${title}.pdf` : `SRN_Publication.pdf`;
+                a.download = fileName;
+
+                a.click();
+                URL.revokeObjectURL(url);
             } catch (err) { showToast(err.message); }
         }
 
