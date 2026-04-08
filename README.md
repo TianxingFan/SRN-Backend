@@ -63,7 +63,6 @@ This architecture ensures that while file retrieval remains synchronous and effi
 
 *(Demonstrating the event-driven workflow that prevents UI blocking during Ethereum block mining.)*
 
-![Sequence Diagram](./docs/sequence1.png)
 ![Sequence Diagram](./docs/sequence2.png)
 
 ---
