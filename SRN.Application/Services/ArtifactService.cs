@@ -29,18 +29,14 @@ namespace SRN.Application.Services
             _fileStorageService = fileStorageService;
         }
 
-        public async Task<(bool Success, string Message, Guid? ArtifactId, string? Hash)> UploadArtifactAsync(
-            ArtifactUploadDto dto,
-            string userId)
+        public async Task<(bool Success, string Message, Guid? ArtifactId, string? Hash)> UploadArtifactAsync(ArtifactUploadDto dto, string userId)
         {
             string fileHash;
             using (var sha256 = SHA256.Create())
             using (var stream = dto.File.OpenReadStream())
             {
                 var hashBytes = await sha256.ComputeHashAsync(stream);
-                fileHash = BitConverter.ToString(hashBytes)
-                    .Replace("-", "")
-                    .ToLowerInvariant();
+                fileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
             }
 
             var existing = await _repository.GetByHashAsync(fileHash);
@@ -95,7 +91,7 @@ namespace SRN.Application.Services
 
                 try
                 {
-                    await Task.Delay(15000);
+                    await Task.Delay(12000);
 
                     string txHash = await bgBlockchain.RegisterArtifactAsync(currentFileHash);
 
@@ -107,11 +103,7 @@ namespace SRN.Application.Services
                         await bgRepository.UpdateAsync(artifactToUpdate);
                     }
 
-                    await bgNotifier.SendSuccessAsync(
-                        ownerId,
-                        $"✅ Your paper has been approved and registered! TxHash: {txHash}",
-                        currentArtifactId
-                    );
+                    await bgNotifier.SendSuccessAsync(ownerId, $"Your paper has been approved and registered! TxHash: {txHash}", currentArtifactId);
                 }
                 catch (Exception ex)
                 {
@@ -122,11 +114,7 @@ namespace SRN.Application.Services
                         await bgRepository.UpdateAsync(artifactToUpdate);
                     }
 
-                    await bgNotifier.SendFailureAsync(
-                        ownerId,
-                        $"❌ Blockchain registration failed: {ex.Message}",
-                        currentArtifactId
-                    );
+                    await bgNotifier.SendFailureAsync(ownerId, $"Blockchain registration failed: {ex.Message}", currentArtifactId);
                 }
             });
 
@@ -139,10 +127,7 @@ namespace SRN.Application.Services
             if (!result.Registered)
                 return (false, string.Empty, null);
 
-            var verifyTime = DateTimeOffset
-                .FromUnixTimeSeconds(result.Timestamp)
-                .DateTime
-                .ToLocalTime();
+            var verifyTime = DateTimeOffset.FromUnixTimeSeconds(result.Timestamp).DateTime.ToLocalTime();
 
             return (true, result.Owner, verifyTime);
         }
@@ -204,16 +189,19 @@ namespace SRN.Application.Services
             });
         }
 
-        public async Task<Artifact?> GetPublicArtifactForDownloadAsync(Guid id)
+        public async Task<(bool IsTampered, Artifact? Artifact)> GetPublicArtifactForDownloadAsync(Guid id)
         {
             var artifact = await _repository.GetByIdAsync(id);
 
-            if (artifact != null && artifact.Status == "Registered")
+            if (artifact == null || artifact.Status != "Registered")
             {
-                return artifact;
+                return (false, null);
             }
 
-            return null;
+            var currentHash = await _fileStorageService.CalculateExistingFileHashAsync(artifact.FilePath);
+            bool isTampered = currentHash == null || currentHash != artifact.FileHash;
+
+            return (isTampered, artifact);
         }
 
         public async Task<bool> DeleteArtifactAsync(Guid id, string userId, bool isAdmin = false)

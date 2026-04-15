@@ -1,27 +1,43 @@
 ﻿using Microsoft.AspNetCore.Http;
 using SRN.Application.Interfaces;
+using System.Security.Cryptography;
 
-namespace SRN.Infrastructure.Services;
-
-public class LocalFileStorageService : IFileStorageService
+namespace SRN.Infrastructure.Services
 {
-    public async Task<string> SaveFileAsync(IFormFile file, string subFolder = "artifacts")
+    public class LocalFileStorageService : IFileStorageService
     {
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", subFolder);
-
-        if (!Directory.Exists(uploadsFolder))
+        public async Task<string> SaveFileAsync(IFormFile file, string subFolder = "artifacts")
         {
-            Directory.CreateDirectory(uploadsFolder);
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", subFolder);
+
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return Path.Combine("Uploads", subFolder, uniqueFileName).Replace("\\", "/");
         }
 
-        var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        public async Task<string?> CalculateExistingFileHashAsync(string filePath)
         {
-            await file.CopyToAsync(stream);
-        }
+            var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
 
-        return Path.Combine("Uploads", subFolder, uniqueFileName).Replace("\\", "/");
+            if (!File.Exists(absolutePath)) return null;
+
+            using (var sha256 = SHA256.Create())
+            using (var stream = new FileStream(absolutePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                var hashBytes = await sha256.ComputeHashAsync(stream);
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+            }
+        }
     }
 }

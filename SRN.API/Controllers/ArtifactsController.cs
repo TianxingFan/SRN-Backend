@@ -134,11 +134,20 @@ namespace SRN.API.Controllers
         }
 
         [HttpGet("public/download/{id}")]
-        public async Task<IActionResult> PublicDownload(Guid id)
+        public async Task<IActionResult> PublicDownload(Guid id, [FromQuery] bool forceDownload = false)
         {
-            var artifact = await _artifactService.GetPublicArtifactForDownloadAsync(id);
+            var (isTampered, artifact) = await _artifactService.GetPublicArtifactForDownloadAsync(id);
 
             if (artifact == null) return NotFound("Artifact not found or not yet published.");
+
+            if (isTampered && !forceDownload)
+            {
+                return BadRequest(new
+                {
+                    isTampered = true,
+                    message = "Warning: The file doesn’t match the original. Download anyway?"
+                });
+            }
 
             var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), artifact.FilePath);
 
