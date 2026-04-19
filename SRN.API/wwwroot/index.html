@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" href="data:,">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SRN</title>
@@ -328,6 +329,7 @@
             msg = msg.replace(/The Email field is not a valid.*/gi, "Please enter a valid email address format.");
             msg = msg.replace(/User name '.*' is invalid.*/gi, "Invalid email address format.");
             msg = msg.replace(/Email '.*' is already taken\./gi, "This email is already registered. Please Log In.");
+            msg = msg.replace(/Username '.*' is already taken\./gi, "This email is already registered. Please Log In.");
 
             return msg;
         }
@@ -388,26 +390,47 @@
                 let isAnyProcessing = false;
 
                 artifacts.forEach(a => {
-                    let actionHtml = ''; let statusColor = 'secondary';
+                    let actionHtml = '';
+                    let statusColor = 'secondary';
+
                     if (a.status === 'Pending Review') {
-                        statusColor = 'warning text-dark'; actionHtml = `<button class="btn btn-sm btn-dark" onclick="approveArtifact('${a.artifactId}')">Approve & Publish</button>`;
+                        statusColor = 'warning text-dark';
+                        actionHtml = `<button class="btn btn-sm btn-dark" onclick="approveArtifact('${a.artifactId}')">Publish</button>`;
                     } else if (a.status === 'Processing Blockchain') {
-                        statusColor = 'info text-dark'; actionHtml = `<span class="badge bg-light text-dark border">Anchoring...</span>`;
+                        statusColor = 'info text-dark';
+                        actionHtml = `<span class="badge bg-light text-dark border">Anchoring...</span>`;
                         isAnyProcessing = true;
                     } else if (a.status === 'Registered') {
-                        statusColor = 'success'; actionHtml = `<span class="text-success small fw-bold">✓ Published</span>`;
+                        statusColor = 'success';
+                        actionHtml = `<span class="text-success small fw-bold">✓ Published</span>`;
                     }
 
                     const safeTitle = a.title ? a.title.replace(/"/g, '&quot;') : '';
 
-                    actionHtml += `<button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteArtifact('${a.artifactId}')">Delete</button>`;
-                    tbody.innerHTML += `<tr><td class="ps-3"><strong>${a.title}</strong><br><small class="hash-text">Ref: ${a.fileHash.substring(0, 16)}...</small></td><td><span class="badge bg-${statusColor}">${a.status}</span></td><td><small class="text-muted">${new Date(a.uploadDate).toLocaleDateString()}</small></td><td><button class="btn btn-sm btn-outline-secondary me-2" data-title="${safeTitle}" onclick="downloadPrivateArtifact('${a.artifactId}', this.dataset.title)">Review PDF</button>${actionHtml}</td></tr>`;
+                    actionHtml += `<button class="btn btn-sm btn-outline-danger" onclick="deleteArtifact('${a.artifactId}')">Delete</button>`;
+
+                    tbody.innerHTML += `<tr>
+                <td class="ps-3">
+                    <strong>${a.title}</strong><br>
+                    <small class="hash-text">Ref: ${a.fileHash.substring(0, 16)}...</small>
+                </td>
+                <td><span class="badge bg-${statusColor}">${a.status}</span></td>
+                <td><small class="text-muted">${new Date(a.uploadDate).toLocaleDateString()}</small></td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" data-title="${safeTitle}" onclick="downloadPrivateArtifact('${a.artifactId}', this.dataset.title)">Review</button>
+                        ${actionHtml}
+                    </div>
+                </td>
+            </tr>`;
                 });
 
                 if (isAnyProcessing && document.querySelector('#admin').style.display === 'block') {
                     setTimeout(fetchAdminArtifacts, 3000);
                 }
-            } catch (err) { showToast('Error: ' + err.message); }
+            } catch (err) {
+                showToast('Error: ' + err.message);
+            }
         }
 
         async function approveArtifact(id) {
@@ -519,8 +542,18 @@
             const title = document.getElementById('titleInput').value.trim();
             const file = document.getElementById('fileInput').files[0];
 
-            if (!title) return showToast('Please enter a Title.');
-            if (!file) return showToast('Please select a PDF document.');
+            if (!title) {
+                alert('Please enter a Title.');
+                return;
+            }
+            if (!file) {
+                alert('Please select a PDF document.');
+                return;
+            }
+
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                return showToast('Invalid format. Only PDF documents are allowed.');
+            }
 
             const formData = new FormData(); formData.append('File', file); formData.append('Title', title);
             document.getElementById('uploadStatus').innerHTML = '<span class="text-secondary small">Uploading...</span>';
@@ -588,6 +621,8 @@
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userId', data.user.id);
                 bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
                 updateUIState();
                 connection = connectSignalR();
                 navigateTo(isAdmin() ? '#admin' : '#upload');
@@ -615,12 +650,16 @@
                 bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
                 showToast('Sign up successful! You may now login.');
                 document.getElementById('registerStatus').innerHTML = '';
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerPassword').value = '';
             } catch (err) { document.getElementById('registerStatus').innerHTML = err.message; }
         }
 
         function logout() {
             localStorage.clear();
             if (connection) connection.stop();
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
             updateUIState();
             navigateTo('#home');
         }
