@@ -10,6 +10,10 @@ using System.Text;
 
 namespace SRN.API.Controllers
 {
+    /// <summary>
+    /// Manages user identity, including registration, login, and JWT token issuance.
+    /// Utilizes ASP.NET Core Identity for secure password hashing and role management.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -23,6 +27,9 @@ namespace SRN.API.Controllers
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Registers a new user and assigns them the default 'Member' role.
+        /// </summary>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto model)
         {
@@ -33,9 +40,10 @@ namespace SRN.API.Controllers
                 UserName = model.Email,
                 Email = model.Email,
                 WalletAddress = model.WalletAddress,
-                Role = "Member"
+                Role = "Member" // Default role assignment for new sign-ups
             };
 
+            // CreateAsync automatically hashes the password before persisting it to the database
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
@@ -43,13 +51,19 @@ namespace SRN.API.Controllers
                 return Ok(new { message = "User registered successfully!" });
             }
 
+            // Return specific identity validation errors (e.g., password too weak, email taken)
             return BadRequest(result.Errors);
         }
 
+        /// <summary>
+        /// Authenticates user credentials and returns a signed JWT for session management.
+        /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
+
+            // Validate user existence and verify the provided password against the stored hash
             if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 return Unauthorized("Invalid login attempt.");
@@ -70,6 +84,10 @@ namespace SRN.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Secure endpoint to retrieve the currently logged-in user's profile information.
+        /// Relies on the provided JWT Bearer token to identify the user.
+        /// </summary>
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> GetMe()
@@ -89,12 +107,17 @@ namespace SRN.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Helper method to construct and sign a JSON Web Token (JWT).
+        /// Embeds essential user claims (ID, Email, Roles) securely into the payload.
+        /// </summary>
         private async Task<string> GenerateJwtTokenAsync(ApplicationUser user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key not configured."));
             var tokenHandler = new JwtSecurityTokenHandler();
 
+            // Standard claims payload
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id ?? string.Empty),
@@ -103,12 +126,14 @@ namespace SRN.API.Controllers
                 new Claim("WalletAddress", user.WalletAddress ?? "")
             };
 
+            // Embed all assigned roles into the token claims for RBAC (Role-Based Access Control)
             var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
+            // Fallback to ensure the primary role property is included
             if (!string.IsNullOrEmpty(user.Role) && !roles.Contains(user.Role))
             {
                 claims.Add(new Claim(ClaimTypes.Role, user.Role));

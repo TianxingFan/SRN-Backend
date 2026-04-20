@@ -5,16 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SRN</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
     <style>
+        /* Base typography and layout styling */
         body {
-            padding-top: 70px;
+            padding-top: 70px; /* Account for fixed navbar */
             background-color: #fcfcfc;
             color: #2c3e50;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        /* Drag and Drop upload area styling */
         .upload-area {
             border: 2px dashed #ccc;
             padding: 30px;
@@ -25,17 +30,20 @@
             transition: 0.2s;
         }
 
+            /* Hover and drag-over effects for the upload area */
             .upload-area:hover, .upload-area.dragover {
                 border-color: #2c3e50;
                 background-color: #f8f9fa;
             }
 
+        /* Monospace font for displaying cryptographic hashes (SHA-256) */
         .hash-text {
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.8em;
             color: #7f8c8d;
         }
 
+        /* Styling for team member profile pictures */
         .team-photo {
             width: 140px;
             height: 140px;
@@ -45,6 +53,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         }
 
+        /* Section typography */
         .section-heading {
             font-weight: 600;
             color: #2c3e50;
@@ -62,6 +71,7 @@
             border: 1px solid #eaeaea;
         }
 
+        /* Custom CSS to draw a visual PDF document icon */
         .pdf-thumbnail {
             width: 80px;
             height: 110px;
@@ -77,6 +87,7 @@
             flex-shrink: 0;
         }
 
+            /* Text label inside the PDF icon */
             .pdf-thumbnail::before {
                 content: 'PDF';
                 font-weight: bold;
@@ -84,6 +95,7 @@
                 font-size: 1.2rem;
             }
 
+            /* Folded corner effect for the PDF icon */
             .pdf-thumbnail::after {
                 content: '';
                 position: absolute;
@@ -99,6 +111,7 @@
                 border-bottom-left-radius: 2px;
             }
 
+        /* Hover animation for publication cards */
         .paper-card {
             transition: transform 0.2s, box-shadow 0.2s;
         }
@@ -124,6 +137,7 @@
                     <li class="nav-item"><a class="nav-link" href="#papers">Publications</a></li>
                     <li class="nav-item"><a class="nav-link" href="#verify">Verify</a></li>
                     <li class="nav-item"><a class="nav-link" href="#contact">Contact Us</a></li>
+
                     <li class="nav-item auth-required" style="display: none;"><a class="nav-link text-warning" href="#upload">Workspace</a></li>
                     <li class="nav-item admin-only" style="display: none;"><a class="nav-link text-danger fw-bold" href="#admin">Admin Panel</a></li>
                 </ul>
@@ -198,10 +212,12 @@
         <section id="papers" class="mb-5" style="display: none;">
             <h2 class="section-heading mb-2">Publications</h2>
             <p class="text-muted mb-4">Open-access research, academic papers, and technical reports supporting socio-economic resilience.</p>
+
             <div class="input-group mb-4 shadow-sm">
                 <span class="input-group-text bg-white border-end-0 text-muted">🔍</span>
                 <input type="text" id="searchInput" class="form-control border-start-0 py-2" placeholder="Search publications by title..." onkeyup="filterPublications()">
             </div>
+
             <div class="row" id="publicPapersList">
                 <div class="text-center mt-4"><div class="spinner-border text-secondary" role="status"></div></div>
             </div>
@@ -237,10 +253,16 @@
                     <div class="card shadow-sm mb-4 border">
                         <div class="card-body">
                             <h5 class="card-title mb-4 fw-bold">Upload Document</h5>
-                            <div class="mb-3"><label class="form-label small fw-bold">Title</label><input type="text" id="titleInput" class="form-control form-control-sm" placeholder="Title"></div>
-                            <div class="upload-area mb-3" id="uploadArea"><p id="uploadText" class="text-muted mb-0 small">📄 Select PDF Document</p><input type="file" id="fileInput" style="display: none;" accept="application/pdf"></div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Title</label>
+                                <input type="text" id="titleInput" class="form-control form-control-sm" placeholder="Title">
+                            </div>
+                            <div class="upload-area mb-3" id="uploadArea">
+                                <p id="uploadText" class="text-muted mb-0 small">📄 Select PDF Document</p>
+                                <input type="file" id="fileInput" style="display: none;" accept="application/pdf">
+                            </div>
                             <button class="btn btn-dark w-100 btn-sm" onclick="uploadFile()">Upload</button>
-                            <div id="uploadStatus" class="mt-3 small"></div>
+                            <div id="uploadStatus" class="mt-3 small text-center"></div>
                         </div>
                     </div>
                 </div>
@@ -248,7 +270,9 @@
                     <div class="card shadow-sm border">
                         <div class="card-body">
                             <h5 class="card-title mb-3 fw-bold">My Uploads</h5>
-                            <ul id="historyList" class="list-group list-group-flush"><li class="list-group-item text-muted text-center py-4">No uploads found.</li></ul>
+                            <ul id="historyList" class="list-group list-group-flush">
+                                <li class="list-group-item text-muted text-center py-4">No uploads found.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -261,8 +285,17 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light"><tr><th class="ps-3">Document</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
-                            <tbody id="adminArtifactsList"><tr><td colspan="4" class="text-center py-4 text-muted">Loading...</td></tr></tbody>
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Document</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminArtifactsList">
+                                <tr><td colspan="4" class="text-center py-4 text-muted">Loading...</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -273,7 +306,10 @@
 
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="liveToast" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex"><div class="toast-body small" id="toastMessage"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+            <div class="d-flex">
+                <div class="toast-body small" id="toastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
         </div>
     </div>
 
@@ -299,7 +335,10 @@
     <div class="modal fade" id="registerModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-light border-0"><h6 class="modal-title fw-bold">Join SRN Network</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header bg-light border-0">
+                    <h6 class="modal-title fw-bold">Join SRN Network</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body p-4">
                     <form onsubmit="event.preventDefault(); registerUser();">
                         <input type="email" id="registerEmail" class="form-control form-control-sm mb-3" placeholder="Email Address" required>
@@ -314,49 +353,97 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // API Base URL (empty for same-origin relative requests)
         const baseUrl = '';
         let connection = null;
 
+        /**
+         * Translates raw ASP.NET Identity error messages into user-friendly UI text.
+         * Utilizes a highly maintainable rule mapping array approach.
+         */
         function translateBackendError(errMsg) {
             if (!errMsg) return "An unexpected error occurred. Please try again.";
+
+            const errorMappings = [
+                {
+                    regex: /.*minimum length of '\d+'.*/gi,
+                    message: "Password must be at least 6 characters long."
+                },
+                {
+                    regex: /.*non alphanumeric character.*/gi,
+                    message: "Password must contain at least one special symbol (e.g., @, #, !)."
+                },
+                {
+                    regex: /.*at least one digit.*/gi,
+                    message: "Password must contain at least one number."
+                },
+                {
+                    regex: /.*at least one uppercase.*/gi,
+                    message: "Password must contain at least one uppercase letter (A-Z)."
+                },
+                {
+                    regex: /.*at least one lowercase.*/gi,
+                    message: "Password must contain at least one lowercase letter (a-z)."
+                },
+                {
+                    regex: /The Email field is not a valid.*|User name '.*' is invalid.*/gi,
+                    message: "Please enter a valid email address format."
+                },
+                {
+                    regex: /(Username|Email) '.*' is already taken\./gi,
+                    message: "This email is already registered. Please Log In."
+                }
+            ];
+
             let msg = errMsg;
 
-            msg = msg.replace(/The field Password must be a string or array type with a minimum length of '\d+'\./g, "Password must be at least 6 characters long.");
-            msg = msg.replace(/Passwords must have at least one non alphanumeric character.*/g, "Password must contain at least one special symbol (e.g., @, #, !).");
-            msg = msg.replace(/Passwords must have at least one digit.*/g, "Password must contain at least one number.");
-            msg = msg.replace(/Passwords must have at least one uppercase.*/g, "Password must contain at least one uppercase letter (A-Z).");
-            msg = msg.replace(/Passwords must have at least one lowercase.*/g, "Password must contain at least one lowercase letter (a-z).");
-            msg = msg.replace(/The Email field is not a valid.*/gi, "Please enter a valid email address format.");
-            msg = msg.replace(/User name '.*' is invalid.*/gi, "Invalid email address format.");
-            msg = msg.replace(/Email '.*' is already taken\./gi, "This email is already registered. Please Log In.");
-            msg = msg.replace(/Username '.*' is already taken\./gi, "This email is already registered. Please Log In.");
+            // Apply regex replacements sequentially
+            errorMappings.forEach(mapping => {
+                msg = msg.replace(mapping.regex, mapping.message);
+            });
 
             return msg;
         }
 
+        /**
+         * Decodes a JWT token payload locally to extract claims without contacting the server.
+         */
         function parseJwt(token) {
-            try { return JSON.parse(decodeURIComponent(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))); } catch (e) { return null; }
+            try {
+                return JSON.parse(decodeURIComponent(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+            } catch (e) {
+                return null;
+            }
         }
 
+        /**
+         * Checks if the currently authenticated user possesses the 'Admin' role claim.
+         */
         function isAdmin() {
             const token = localStorage.getItem('token');
             if (!token) return false;
             const decoded = parseJwt(token);
             if (!decoded) return false;
+
+            // Handle array of roles or single role string
             const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
             return Array.isArray(role) ? role.includes("Admin") : role === "Admin";
         }
 
+        /**
+         * Minimalist SPA router: Hides all sections and displays the target section.
+         */
         function navigateTo(section) {
             document.querySelectorAll('section').forEach(s => s.style.display = 'none');
             const target = document.querySelector(section);
             if (target) target.style.display = 'block';
 
+            // Manage active states on the navigation bar
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-
             const activeLink = document.querySelector(`.nav-link[href="${section}"]`);
             if (activeLink) activeLink.classList.add('active');
 
+            // Trigger specific rendering logic based on the destination route
             if (section === '#upload') {
                 document.getElementById('uploadStatus').innerHTML = '';
                 document.getElementById('titleInput').value = '';
@@ -367,28 +454,38 @@
 
             if (section === '#papers') fetchPublicPapers();
             if (section === '#admin') fetchAdminArtifacts();
+
             window.scrollTo(0, 0);
         }
 
+        /**
+         * Toggles DOM elements based on user authentication and role status.
+         */
         function updateUIState() {
             const isLoggedIn = !!localStorage.getItem('token');
             const isUserAdmin = isAdmin();
+
             document.querySelectorAll('.guest-only').forEach(el => el.style.display = isLoggedIn ? 'none' : 'block');
             document.querySelectorAll('.auth-required').forEach(el => el.style.display = isLoggedIn ? 'block' : 'none');
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = isUserAdmin ? 'block' : 'none');
         }
 
+        /**
+         * Admin Function: Fetches all system artifacts and renders the management table.
+         */
         async function fetchAdminArtifacts() {
             const token = localStorage.getItem('token');
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/all`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error('Failed to load data');
                 const artifacts = await res.json();
+
                 const tbody = document.getElementById('adminArtifactsList');
                 tbody.innerHTML = artifacts.length === 0 ? '<tr><td colspan="4" class="text-center py-4 text-muted">No submissions.</td></tr>' : '';
 
                 let isAnyProcessing = false;
 
+                // Render each artifact based on its workflow state
                 artifacts.forEach(a => {
                     let actionHtml = '';
                     let statusColor = 'secondary';
@@ -399,32 +496,34 @@
                     } else if (a.status === 'Processing Blockchain') {
                         statusColor = 'info text-dark';
                         actionHtml = `<span class="badge bg-light text-dark border">Anchoring...</span>`;
-                        isAnyProcessing = true;
+                        isAnyProcessing = true; // Flag indicates polling is required
                     } else if (a.status === 'Registered') {
                         statusColor = 'success';
                         actionHtml = `<span class="text-success small fw-bold">✓ Published</span>`;
                     }
 
+                    // Escape quotes to prevent XSS injection
                     const safeTitle = a.title ? a.title.replace(/"/g, '&quot;') : '';
 
                     actionHtml += `<button class="btn btn-sm btn-outline-danger" onclick="deleteArtifact('${a.artifactId}')">Delete</button>`;
 
                     tbody.innerHTML += `<tr>
-                <td class="ps-3">
-                    <strong>${a.title}</strong><br>
-                    <small class="hash-text">Ref: ${a.fileHash.substring(0, 16)}...</small>
-                </td>
-                <td><span class="badge bg-${statusColor}">${a.status}</span></td>
-                <td><small class="text-muted">${new Date(a.uploadDate).toLocaleDateString()}</small></td>
-                <td>
-                    <div class="d-flex align-items-center gap-2">
-                        <button class="btn btn-sm btn-outline-secondary" data-title="${safeTitle}" onclick="downloadPrivateArtifact('${a.artifactId}', this.dataset.title)">Review</button>
-                        ${actionHtml}
-                    </div>
-                </td>
-            </tr>`;
+                            <td class="ps-3">
+                                <strong>${a.title}</strong><br>
+                                <small class="hash-text">Ref: ${a.fileHash.substring(0, 16)}...</small>
+                            </td>
+                            <td><span class="badge bg-${statusColor}">${a.status}</span></td>
+                            <td><small class="text-muted">${new Date(a.uploadDate).toLocaleDateString()}</small></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary" data-title="${safeTitle}" onclick="downloadPrivateArtifact('${a.artifactId}', this.dataset.title)">Review</button>
+                                    ${actionHtml}
+                                </div>
+                            </td>
+                        </tr>`;
                 });
 
+                // Implement polling loop to auto-refresh the UI while blockchain anchor is pending
                 if (isAnyProcessing && document.querySelector('#admin').style.display === 'block') {
                     setTimeout(fetchAdminArtifacts, 3000);
                 }
@@ -433,6 +532,9 @@
             }
         }
 
+        /**
+         * Admin Function: Initiates the blockchain registration process for an artifact.
+         */
         async function approveArtifact(id) {
             if (!confirm("Approve and publish this document?")) return;
             const token = localStorage.getItem('token');
@@ -444,41 +546,48 @@
             } catch (err) { showToast(`❌ Error: ${err.message}`); }
         }
 
+        /**
+         * Public Function: Fetches approved documents and renders the grid view.
+         */
         async function fetchPublicPapers() {
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/public`);
                 const papers = await res.json();
                 const container = document.getElementById('publicPapersList');
                 container.innerHTML = papers.length === 0 ? '<div class="col-12"><div class="alert bg-white border text-center text-muted">No publications available at this time.</div></div>' : '';
+
                 papers.forEach(p => {
                     const safeTitle = p.title ? p.title.replace(/"/g, '&quot;') : '';
                     container.innerHTML += `
-                                            <div class="col-12 mb-3 paper-card-container">
-                                                <div class="card shadow-sm border-0 paper-card border">
-                                                    <div class="card-body d-flex align-items-center flex-wrap gap-3">
-                                                        <div class="pdf-thumbnail"></div>
-                                                        <div style="flex: 1; min-width: 250px;">
-                                                            <h5 class="mb-1 fw-bold paper-title" style="color:#2c3e50;">${p.title}</h5>
-                                                            <p class="text-muted small mb-2">
-                                                                <span class="badge bg-light text-dark border me-2">Date: ${new Date(p.uploadDate).toLocaleDateString()}</span>
-                                                                <span class="badge bg-light text-dark border">Status: Published</span>
-                                                            </p>
-                                                            <div class="text-success small fw-bold mt-2">
-                                                                <span class="badge bg-success-subtle text-success border border-success">✓ Verified on Blockchain</span>
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <button class="btn btn-dark px-4 py-2 fw-bold" data-title="${safeTitle}" onclick="downloadPublicArtifact('${p.artifactId}', this.dataset.title)">
-                                                                Download
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>`;
+                            <div class="col-12 mb-3 paper-card-container">
+                                <div class="card shadow-sm border-0 paper-card border">
+                                    <div class="card-body d-flex align-items-center flex-wrap gap-3">
+                                        <div class="pdf-thumbnail"></div>
+                                        <div style="flex: 1; min-width: 250px;">
+                                            <h5 class="mb-1 fw-bold paper-title" style="color:#2c3e50;">${p.title}</h5>
+                                            <p class="text-muted small mb-2">
+                                                <span class="badge bg-light text-dark border me-2">Date: ${new Date(p.uploadDate).toLocaleDateString()}</span>
+                                                <span class="badge bg-light text-dark border">Status: Published</span>
+                                            </p>
+                                            <div class="text-success small fw-bold mt-2">
+                                                <span class="badge bg-success-subtle text-success border border-success">✓ Verified on Blockchain</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-dark px-4 py-2 fw-bold" data-title="${safeTitle}" onclick="downloadPublicArtifact('${p.artifactId}', this.dataset.title)">
+                                                Download
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
                 });
             } catch (err) { document.getElementById('publicPapersList').innerHTML = `<div class="text-danger">Failed to load publications.</div>`; }
         }
 
+        /**
+         * Filters the rendered publications based on user input.
+         */
         function filterPublications() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const paperCards = document.querySelectorAll('.paper-card-container');
@@ -488,8 +597,13 @@
             });
         }
 
+        /**
+         * Security Feature: On-Demand file integrity check during download.
+         * Prevents users from downloading tampered files unless forced.
+         */
         async function downloadPublicArtifact(id, title, forceDownload = false) {
             try {
+                // Append bypass query string if the user overrides the security warning
                 const fetchUrl = `${baseUrl}/api/artifacts/public/download/${id}${forceDownload ? '?forceDownload=true' : ''}`;
                 const res = await fetch(fetchUrl);
 
@@ -497,27 +611,30 @@
                     if (res.status === 400) {
                         try {
                             const errorData = await res.json();
+                            // Intercept tampered files and prompt user
                             if (errorData.isTampered) {
                                 const userConfirmed = confirm(errorData.message);
                                 if (userConfirmed) {
+                                    // Recursively call with force mode activated
                                     return downloadPublicArtifact(id, title, true);
                                 } else {
-                                    return;
+                                    return; // Terminate download process
                                 }
                             }
                         } catch (e) {
+                            // Suppress JSON parse errors on generic 400 responses
                         }
                     }
                     throw new Error('File not found or download failed');
                 }
 
+                // Process standard binary file download
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url;
-
+                const a = document.createElement('a');
+                a.href = url;
                 const fileName = title ? `${title}.pdf` : `SRN_Publication.pdf`;
                 a.download = fileName;
-
                 a.click();
                 URL.revokeObjectURL(url);
             } catch (err) {
@@ -525,48 +642,91 @@
             }
         }
 
+        /**
+         * Web3 Verification: Compares a user-provided SHA-256 hash against the blockchain registry.
+         */
         async function verifyHash() {
             const hash = document.getElementById('hashInput').value.trim();
             if (!hash) return showToast('Please enter a document hash.');
+
             document.getElementById('verifyResult').innerHTML = '<span class="text-secondary small">Verifying...</span>';
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/verify/${hash}`);
                 if (!res.ok) throw new Error('Not found');
                 const data = await res.json();
+
                 document.getElementById('verifyResult').innerHTML = `<div class="alert bg-white border text-success text-start small mb-0"><strong>✓ Authentic Record Verified</strong><br><span class="text-muted">Registered Timestamp: ${new Date(data.details.registeredAt).toLocaleString()}</span></div>`;
-            } catch (err) { document.getElementById('verifyResult').innerHTML = `<div class="alert bg-white border text-danger small mb-0">❌ Record not found in the SRN registry.</div>`; }
+            } catch (err) {
+                document.getElementById('verifyResult').innerHTML = `<div class="alert bg-white border text-danger small mb-0">❌ Record not found in the SRN registry.</div>`;
+            }
         }
 
+        /**
+         * Handles user file submission with strict format validation.
+         */
         async function uploadFile() {
             const token = localStorage.getItem('token');
             const title = document.getElementById('titleInput').value.trim();
             const file = document.getElementById('fileInput').files[0];
+            const statusDiv = document.getElementById('uploadStatus');
 
+            // Form payload validation via native browser alerts
             if (!title) {
-                alert('Please enter a Title.');
+                statusDiv.innerHTML = '<span class="text-danger small">Please enter a Title.</span>';
                 return;
             }
             if (!file) {
-                alert('Please select a PDF document.');
+                statusDiv.innerHTML = '<span class="text-danger small">Please select a PDF document.</span>';
                 return;
             }
 
+            // Strict MIME type and extension validation to prevent malicious uploads
             if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-                return showToast('Invalid format. Only PDF documents are allowed.');
+                statusDiv.innerHTML = '<span class="text-danger small">Invalid format. Only PDF documents are allowed.</span>';
+                return;
             }
 
-            const formData = new FormData(); formData.append('File', file); formData.append('Title', title);
-            document.getElementById('uploadStatus').innerHTML = '<span class="text-secondary small">Uploading...</span>';
+            const formData = new FormData();
+            formData.append('File', file);
+            formData.append('Title', title);
+
+            statusDiv.innerHTML = '<span class="text-secondary small">Uploading...</span>';
+
             try {
-                const res = await fetch(`${baseUrl}/api/artifacts/upload`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
-                if (!res.ok) throw new Error(await res.text());
-                document.getElementById('uploadStatus').innerHTML = '<span class="text-success small fw-bold">✓ Uploaded successfully.</span>';
-                document.getElementById('titleInput').value = ''; document.getElementById('uploadText').textContent = '📄 Select PDF Document';
+                const res = await fetch(`${baseUrl}/api/artifacts/upload`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    let errText = await res.text();
+                    // Handle logical duplication errors specifically
+                    if (errText.includes("Artifact already exists")) {
+                        throw new Error("This document has already been uploaded.");
+                    } else {
+                        try {
+                            const parsed = JSON.parse(errText);
+                            errText = parsed.message || errText;
+                        } catch (e) { }
+                        throw new Error(errText);
+                    }
+                }
+
+                // Reset form state upon successful upload
+                statusDiv.innerHTML = '<span class="text-success small fw-bold">✓ Uploaded successfully.</span>';
+                document.getElementById('titleInput').value = '';
+                document.getElementById('uploadText').textContent = '📄 Select PDF Document';
                 document.getElementById('fileInput').value = '';
                 renderHistory();
-            } catch (err) { document.getElementById('uploadStatus').innerHTML = `<span class="text-danger small">Failed: ${err.message}</span>`; }
+            } catch (err) {
+                statusDiv.innerHTML = `<span class="text-danger small">${err.message}</span>`;
+            }
         }
 
+        /**
+         * Renders the personal upload history for the authenticated user.
+         */
         async function renderHistory() {
             const token = localStorage.getItem('token');
             if (!token) return;
@@ -574,25 +734,40 @@
                 const res = await fetch(`${baseUrl}/api/artifacts/history`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const history = await res.json();
                 const list = document.getElementById('historyList');
+
                 list.innerHTML = history.length === 0 ? '<li class="list-group-item text-muted text-center py-4 border-0">No uploads found.</li>' : '';
+
                 history.forEach(h => {
                     const statusColor = h.status === 'Registered' ? 'success' : (h.status.includes('Pending') ? 'warning text-dark' : 'danger');
                     const safeTitle = h.title ? h.title.replace(/"/g, '&quot;') : '';
 
-                    list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center py-3"><div><strong class="d-block" style="color:#2c3e50;">${h.title}</strong><span class="badge bg-${statusColor} mt-1">${h.status}</span></div><div><button class="btn btn-sm btn-outline-secondary" data-title="${safeTitle}" onclick="downloadPrivateArtifact('${h.artifactId}', this.dataset.title)">PDF</button><button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteArtifact('${h.artifactId}')">Delete</button></div></li>`;
+                    list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <strong class="d-block" style="color:#2c3e50;">${h.title}</strong>
+                                <span class="badge bg-${statusColor} mt-1">${h.status}</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary" data-title="${safeTitle}" onclick="downloadPrivateArtifact('${h.artifactId}', this.dataset.title)">PDF</button>
+                                <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteArtifact('${h.artifactId}')">Delete</button>
+                            </div>
+                        </li>`;
                 });
             } catch (err) { console.error(err); }
         }
 
+        /**
+         * Authenticated secure download endpoint proxy.
+         */
         async function downloadPrivateArtifact(id, title) {
             const token = localStorage.getItem('token');
             try {
                 const res = await fetch(`${baseUrl}/api/artifacts/download/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error('Download failed');
+
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url;
-
+                const a = document.createElement('a');
+                a.href = url;
                 const fileName = title ? `${title}.pdf` : `SRN_Publication.pdf`;
                 a.download = fileName;
 
@@ -601,34 +776,52 @@
             } catch (err) { showToast(err.message); }
         }
 
+        /**
+         * Executes a hard delete for a specific document artifact.
+         */
         async function deleteArtifact(id) {
             if (!confirm('Are you sure you want to delete this document?')) return;
             const token = localStorage.getItem('token');
             try {
                 await fetch(`${baseUrl}/api/artifacts/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                // Determine context context to refresh the correct grid
                 if (document.querySelector('#admin').style.display === 'block') fetchAdminArtifacts();
                 else renderHistory();
             } catch (err) { showToast(err.message); }
         }
 
+        /**
+         * Authenticates user credentials and provisions JWT session payload.
+         */
         async function loginUser() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             try {
                 const res = await fetch(`${baseUrl}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
                 if (!res.ok) throw new Error('Invalid email or password. Please try again.');
+
                 const data = await res.json();
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userId', data.user.id);
+
+                // Cleanup Modal & Input states
                 bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
                 document.getElementById('loginEmail').value = '';
                 document.getElementById('loginPassword').value = '';
+
                 updateUIState();
                 connection = connectSignalR();
+
+                // Redirect user based on their specific role privileges
                 navigateTo(isAdmin() ? '#admin' : '#upload');
-            } catch (err) { document.getElementById('loginStatus').textContent = err.message; }
+            } catch (err) {
+                document.getElementById('loginStatus').textContent = err.message;
+            }
         }
 
+        /**
+         * Handles new user creation and interprets backend constraint violations.
+         */
         async function registerUser() {
             const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
@@ -637,6 +830,8 @@
                 if (!res.ok) {
                     const errText = await res.text();
                     let errMsg = "Registration failed. Please check your inputs.";
+
+                    // Attempt to parse ASP.NET validation error array formats
                     try {
                         const parsed = JSON.parse(errText);
                         if (Array.isArray(parsed)) errMsg = parsed.map(e => e.description).join('<br>');
@@ -647,54 +842,86 @@
 
                     throw new Error(translateBackendError(errMsg));
                 }
+
                 bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
                 showToast('Sign up successful! You may now login.');
+
+                // Reset states
                 document.getElementById('registerStatus').innerHTML = '';
                 document.getElementById('registerEmail').value = '';
                 document.getElementById('registerPassword').value = '';
-            } catch (err) { document.getElementById('registerStatus').innerHTML = err.message; }
+            } catch (err) {
+                document.getElementById('registerStatus').innerHTML = err.message;
+            }
         }
 
+        /**
+         * Terminates user session, drops WebSocket connection, and cleans up local persistence.
+         */
         function logout() {
             localStorage.clear();
             if (connection) connection.stop();
+
             document.getElementById('loginEmail').value = '';
             document.getElementById('loginPassword').value = '';
+
             updateUIState();
             navigateTo('#home');
         }
 
+        /**
+         * Initializes SignalR WebSocket connection to listen for background blockchain events.
+         */
         function connectSignalR() {
             const userId = localStorage.getItem('userId');
             if (!userId) return null;
+
             const conn = new signalR.HubConnectionBuilder().withUrl(`${baseUrl}/notificationHub?user=${userId}`).build();
+
+            // Listen for push notifications mapped from backend BackgroundService
             conn.on("ReceiveMessage", (sender, message, artifactId) => {
                 showToast(message);
+                // Synchronize affected tables seamlessly
                 if (document.querySelector('#upload').style.display === 'block') renderHistory();
                 if (document.querySelector('#admin').style.display === 'block') fetchAdminArtifacts();
             });
+
             conn.start().catch(err => console.error(err));
             return conn;
         }
 
+        /**
+         * Generic UI utility function to display transient Bootstrap toast messages.
+         */
         function showToast(msg) {
             document.getElementById('toastMessage').textContent = msg;
             new bootstrap.Toast(document.getElementById('liveToast')).show();
         }
 
+        /* -----------------------------------------------------------
+         * Drag and Drop UI Event Handlers Setup
+         * ----------------------------------------------------------- */
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
+
+        // Proxy click event to hidden file input
         uploadArea.addEventListener('click', () => fileInput.click());
+
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) document.getElementById('uploadText').textContent = fileInput.files[0].name;
         });
+
+        // Highlight zone on hover
         uploadArea.addEventListener('dragover', e => {
             e.preventDefault();
             uploadArea.classList.add('dragover');
         });
+
         uploadArea.addEventListener('dragleave', () => {
             uploadArea.classList.remove('dragover');
         });
+
+        // Catch dropped files and populate input element
         uploadArea.addEventListener('drop', e => {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
@@ -706,11 +933,25 @@
             }
         });
 
+        /* -----------------------------------------------------------
+         * Application Bootstrapper
+         * ----------------------------------------------------------- */
         window.onload = () => {
             updateUIState();
-            navigateTo('#home');
-            if (localStorage.getItem('token')) { connection = connectSignalR(); }
-            document.querySelectorAll('.nav-link').forEach(link => { link.addEventListener('click', e => { e.preventDefault(); navigateTo(link.getAttribute('href')); }); });
+            navigateTo('#home'); // Default landing route
+
+            // Restore active SignalR connection if user maintains valid session
+            if (localStorage.getItem('token')) {
+                connection = connectSignalR();
+            }
+
+            // Intercept navigation link clicks to utilize internal SPA router
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    navigateTo(link.getAttribute('href'));
+                });
+            });
         };
     </script>
 </body>

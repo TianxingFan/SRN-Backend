@@ -12,6 +12,7 @@ using SRN.Infrastructure.Repositories;
 using System.Text;
 using SRN.Application.Validators;
 
+// Initialize a bootstrap logger to catch and log any errors that occur during application startup
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
@@ -22,16 +23,20 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    // Replace the default ASP.NET Core logger with Serilog for structured, highly configurable logging
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext()
         .WriteTo.Console());
 
+    // Configure the Entity Framework Core DbContext to use PostgreSQL
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(connectionString));
 
+    // Register Core Infrastructure and Application Services into the Dependency Injection (DI) container
+    // Scoped lifetime means a new instance is created per HTTP request
     builder.Services.AddScoped<IBlockchainService, EthereumBlockchainService>();
     Log.Information("--> Using REAL Ethereum Blockchain Service (Sepolia Testnet)");
 
@@ -40,14 +45,17 @@ try
     builder.Services.AddScoped<INotificationService, SRN.Infrastructure.Services.SignalRNotificationService>();
     builder.Services.AddScoped<IFileStorageService, SRN.Infrastructure.Services.LocalFileStorageService>();
 
+    // Configure ASP.NET Core Identity for user and role management
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
 
+    // Load JWT configuration settings from appsettings.json
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
     var secretKey = jwtSettings["Key"] ?? "DefaultSecretKey_MustBeLongerThan32Characters_ForSafety";
     var key = Encoding.ASCII.GetBytes(secretKey);
 
+    // Configure Authentication and define JWT Bearer as the default scheme
     builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
@@ -55,6 +63,7 @@ try
     })
     .AddJwtBearer(options =>
     {
+        // Define the parameters used to validate incoming JWTs from clients
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -67,23 +76,28 @@ try
         };
     });
 
+    // Configure Cross-Origin Resource Sharing (CORS) to allow the frontend SPA to communicate with this API
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", policy =>
         {
-            policy.SetIsOriginAllowed(origin => true)
+            policy.SetIsOriginAllowed(origin => true) // Highly permissive for development/demo purposes
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials();
+                  .AllowCredentials(); // Required for SignalR WebSockets to function across origins
         });
     });
 
     builder.Services.AddControllers();
 
+    // Automatically register all FluentValidation validators found in the Application assembly
     builder.Services.AddValidatorsFromAssemblyContaining<ArtifactUploadDtoValidator>();
 
+    // Register SignalR for real-time bidirectional communication
     builder.Services.AddSignalR();
     builder.Services.AddEndpointsApiExplorer();
+
+    // Configure Swagger UI and inject JWT Bearer authorization support into the testing interface
     builder.Services.AddSwaggerGen(c =>
     {
         c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -112,35 +126,55 @@ try
 
     var app = builder.Build();
 
+    // --------------------------------------------------------------------
+    // HTTP Request Pipeline Configuration (Middleware Ordering is Critical)
+    // --------------------------------------------------------------------
+
+    // 1. Global Exception Handling (Catches all downstream errors)
     app.UseMiddleware<SRN.API.Middleware.ExceptionMiddleware>();
+
+    // 2. Log incoming HTTP requests via Serilog
     app.UseSerilogRequestLogging();
 
+    // 3. Expose Swagger UI in development environments
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
     }
 
+    // 4. Force HTTPS
     app.UseHttpsRedirection();
 
+    // 5. Serve static frontend files (e.g., index.html, CSS, JS) from wwwroot
     app.UseDefaultFiles();
     app.UseStaticFiles();
 
+    // 6. Apply CORS policy before Auth
     app.UseCors("AllowAll");
 
+    // 7. Identity and Security validation
     app.UseAuthentication();
     app.UseAuthorization();
 
+    // 8. Map route endpoints for REST Controllers and SignalR Hubs
     app.MapControllers();
     app.MapHub<SRN.Infrastructure.Hubs.NotificationHub>("/notificationHub");
 
+    // --------------------------------------------------------------------
+    // Database Migration and Initial Data Seeding
+    // --------------------------------------------------------------------
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<SRN.Infrastructure.Persistence.ApplicationDbContext>();
+
+        // Automatically apply any pending EF Core migrations to the database on startup
         db.Database.Migrate();
+
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
+        // Seed system roles if they do not exist
         string[] roleNames = { "Admin", "Member" };
         foreach (var roleName in roleNames)
         {
@@ -150,6 +184,7 @@ try
             }
         }
 
+        // Seed the default root administrator account to ensure platform access is always possible
         var adminEmail = "admin@srn.ie";
         var adminUser = await userManager.FindByEmailAsync(adminEmail).ConfigureAwait(false);
         if (adminUser == null)
@@ -164,13 +199,16 @@ try
         }
     }
 
+    // Start listening for incoming HTTP requests
     app.Run();
 }
 catch (Exception ex)
 {
+    // Log fatal crashes that prevent the application from starting
     Log.Fatal(ex, "Application terminated unexpectedly");
 }
 finally
 {
+    // Ensure all log entries are flushed to their sinks before shutting down
     Log.CloseAndFlush();
 }

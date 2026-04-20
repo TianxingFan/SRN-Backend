@@ -134,6 +134,15 @@ The solution is organized into four distinct layers:
    dotnet run
    ```
 
+### Test Credentials
+Upon the first run, the system automatically seeds a default Administrator account to evaluate the approval and blockchain anchoring workflow:
+
+* **Role:** Admin
+* **Email:** `admin@srn.ie`
+* **Password:** `Admin@123456`
+
+*(You can also register a standard Researcher account directly via the UI to test the standard upload flow.)*
+
 ---
 
 ## Smart Contract Interaction snippet
